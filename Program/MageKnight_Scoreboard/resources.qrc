@@ -1,0 +1,32 @@
+<RCC>
+    <qresource prefix="/sounds">
+        <file>sounds/sound1.wav</file>
+        <file>sounds/sound2.wav</file>
+        <file>sounds/sound3.wav</file>
+        <file>sounds/sound4.wav</file>
+        <file>sounds/sound5.wav</file>
+        <file>sounds/sound6.wav</file>
+        <file>sounds/sound7.wav</file>
+        <file>sounds/sound8.wav</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>images/Background_Action.jpg</file>
+        <file>images/Background_City.jpg</file>
+        <file>images/Background_Main.jpg</file>
+        <file>images/Background_Start.jpg</file>
+        <file>images/CharacterArythea.jpg</file>
+        <file>images/CharacterGoldyx.jpg</file>
+        <file>images/CharacterKrang.jpg</file>
+        <file>images/CharacterNorowas.jpg</file>
+        <file>images/CharacterTovak.jpg</file>
+        <file>images/Day Movement.jpg</file>
+        <file>images/GeneralVolkare.jpg</file>
+        <file>images/MageKnight_BIG.jpg</file>
+        <file>images/MageKnightLogo.jpg</file>
+        <file>images/maxresdefault.jpg</file>
+        <file>images/PointBoard.JPG</file>
+        <file>images/PushButton.png</file>
+        <file>images/PushButton_disabled.png</file>
+        <file>images/PushButton_pressed.png</file>
+    </qresource>
+</RCC>
