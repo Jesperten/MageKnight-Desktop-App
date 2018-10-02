@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>StartWindow</class>
- <widget class="QMainWindow" name="StartWindow">
+ <class>Window_StartMenu</class>
+ <widget class="QMainWindow" name="Window_StartMenu">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -35,7 +35,7 @@
    <bool>false</bool>
   </property>
   <property name="windowTitle">
-   <string>StartWindow</string>
+   <string>Window_StartMenu</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_2">

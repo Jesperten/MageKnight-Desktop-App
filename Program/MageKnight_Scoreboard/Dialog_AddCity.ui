@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddCityDialog</class>
- <widget class="QDialog" name="AddCityDialog">
+ <class>Dialog_AddCity</class>
+ <widget class="QDialog" name="Dialog_AddCity">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -26,7 +26,7 @@
    <string>Dialog</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QDialog#AddCityDialog{  
+   <string notr="true">QDialog#Dialog_AddCity{  
 	border-image: url(:/images/images/Background_City.jpg);
 }</string>
   </property>

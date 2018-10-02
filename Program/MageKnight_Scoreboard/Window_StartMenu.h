@@ -1,25 +1,25 @@
-#ifndef STARTWINDOW_H
-#define STARTWINDOW_H
+#ifndef Window_StartMenu_H
+#define Window_StartMenu_H
 
 #include <QMainWindow>
 #include <QString>
 #include <QDebug>
 #include <vector>
-#include "MainBoard.h"
+#include "Window_MainBoard.h"
 
 namespace Ui {
-class StartWindow;
+class Window_StartMenu;
 }
 
-class StartWindow : public QMainWindow
+class Window_StartMenu : public QMainWindow
 {
     Q_OBJECT
 
 public:
     // Constructor
-    explicit StartWindow(QWidget *parent = 0);
+    explicit Window_StartMenu(QWidget *parent = nullptr);
     // Destructor
-    ~StartWindow();
+    ~Window_StartMenu();
 
 private slots:
     void on_pushButton_newGame_clicked();
@@ -35,8 +35,8 @@ private slots:
 private:
 
     // Private members
-    Ui::StartWindow *ui;
-    MainBoard *mainBoard;
+    Ui::Window_StartMenu *ui;
+    Window_MainBoard *mWindow_MainBoard;
     QStringList m_TableHeader;
     QString mStyle_CharacterClean;
     QString mStyle_CharacterArythea;
@@ -49,4 +49,4 @@ private:
     void startButtonControlCheck();
 };
 
-#endif // STARTWINDOW_H
+#endif // Window_StartMenu_H

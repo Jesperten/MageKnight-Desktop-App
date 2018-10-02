@@ -1,20 +1,20 @@
-#ifndef ADDCITYDIALOG_H
-#define ADDCITYDIALOG_H
+#ifndef Dialog_AddCity_H
+#define Dialog_AddCity_H
 
 #include <QDialog>
 #include "City.h"
 
 namespace Ui {
-class AddCityDialog;
+class Dialog_AddCity;
 }
 
-class AddCityDialog : public QDialog
+class Dialog_AddCity : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit AddCityDialog(QWidget *parent = 0);
-    ~AddCityDialog();
+    explicit Dialog_AddCity(QWidget *parent = nullptr);
+    ~Dialog_AddCity();
     City mCity;
 
 private slots:
@@ -25,7 +25,7 @@ private slots:
     void on_comboBox_cityLevel_currentIndexChanged(int index);
 
 private:
-    Ui::AddCityDialog *ui;
+    Ui::Dialog_AddCity *ui;
     std::vector<int> greenCityMonsterList = {0, 2, 2, 3, 3 ,3 ,4, 4, 4, 5, 5, 5};
     std::vector<int> blueCityMonsterList  = {0, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5};
     std::vector<int> redCityMonsterList   = {0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5};
@@ -36,4 +36,4 @@ private:
     void updateCityMonsterCount();
 };
 
-#endif // ADDCITYDIALOG_H
+#endif // Dialog_AddCity_H

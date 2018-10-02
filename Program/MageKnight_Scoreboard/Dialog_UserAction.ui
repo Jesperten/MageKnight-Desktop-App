@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UserActionDialog</class>
- <widget class="QDialog" name="UserActionDialog">
+ <class>Dialog_UserAction</class>
+ <widget class="QDialog" name="Dialog_UserAction">
   <property name="windowModality">
    <enum>Qt::WindowModal</enum>
   </property>
@@ -38,7 +38,7 @@
    <string>Dialog</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QDialog#UserActionDialog{
+   <string notr="true">QDialog#Dialog_UserAction{
     border-image: url(:/images/images/Background_Action.jpg);
 }
 

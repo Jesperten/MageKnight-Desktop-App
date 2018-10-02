@@ -244,7 +244,7 @@ void Player::updateScore()
     mLeaderPoints = getTotalUnitPoints();
     mCityPoints = getCityPoints();
 
-    // Update the values used in the MainBoard to find the Greatest Title owners
+    // Update the values used in the Window_MainBoard to find the Greatest Title owners
     mGreatestScoreValues.at(TABLE_ITEM_GREATEST_KNOWLEDGE)      = mKnowledgePoints;
     mGreatestScoreValues.at(TABLE_ITEM_GREATEST_LOOT)           = mLootPoints;
     mGreatestScoreValues.at(TABLE_ITEM_GREATEST_LEADER)         = mLeaderPoints;

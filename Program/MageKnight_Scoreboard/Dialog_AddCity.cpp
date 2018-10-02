@@ -1,9 +1,9 @@
-#include "AddCityDialog.h"
-#include "ui_AddCityDialog.h"
+#include "Dialog_AddCity.h"
+#include "ui_Dialog_AddCity.h"
 
-AddCityDialog::AddCityDialog(QWidget *parent) :
+Dialog_AddCity::Dialog_AddCity(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::AddCityDialog)
+    ui(new Ui::Dialog_AddCity)
 {
     ui->setupUi(this);
     ui_dialogSetupClean();
@@ -11,25 +11,25 @@ AddCityDialog::AddCityDialog(QWidget *parent) :
     mCity.mDiscovered = true;
 }
 
-AddCityDialog::~AddCityDialog()
+Dialog_AddCity::~Dialog_AddCity()
 {
     delete ui;
 }
 
 
-void AddCityDialog::ui_dialogSetupClean()
+void Dialog_AddCity::ui_dialogSetupClean()
 {
     ui->lineEdit_cityName->setPlaceholderText("City Name");
     ui->pushButton_addCity->setEnabled(false);
 }
 
-void AddCityDialog::on_lineEdit_cityName_textChanged(const QString &arg1)
+void Dialog_AddCity::on_lineEdit_cityName_textChanged(const QString &arg1)
 {
     mCity.mName = arg1;
     dialogAcceptEnableCheck();
 }
 
-void AddCityDialog::dialogAcceptEnableCheck()
+void Dialog_AddCity::dialogAcceptEnableCheck()
 {
     if ((mCity.mName == "") || (mCity.mColor == "") || (mCity.mLevel == 0))
     {
@@ -41,7 +41,7 @@ void AddCityDialog::dialogAcceptEnableCheck()
     }
 }
 
-void AddCityDialog::on_comboBox_cityColor_currentIndexChanged(const QString &arg1)
+void Dialog_AddCity::on_comboBox_cityColor_currentIndexChanged(const QString &arg1)
 {
     if (ui->comboBox_cityColor->currentIndex() > 0)
     {
@@ -56,25 +56,25 @@ void AddCityDialog::on_comboBox_cityColor_currentIndexChanged(const QString &arg
     dialogAcceptEnableCheck();
 }
 
-void AddCityDialog::on_comboBox_cityLevel_currentIndexChanged(int index)
+void Dialog_AddCity::on_comboBox_cityLevel_currentIndexChanged(int index)
 {
     mCity.mLevel = index;
     updateCityMonsterCount();
     dialogAcceptEnableCheck();
 }
 
-void AddCityDialog::on_pushButton_addCity_clicked()
+void Dialog_AddCity::on_pushButton_addCity_clicked()
 {
     this->accept();
 }
 
-void AddCityDialog::on_pushButton_cancel_clicked()
+void Dialog_AddCity::on_pushButton_cancel_clicked()
 {
     this->reject();
 }
 
 
-void AddCityDialog::updateCityMonsterCount()
+void Dialog_AddCity::updateCityMonsterCount()
 {
     unsigned int index = unsigned(ui->comboBox_cityLevel->currentIndex());
 

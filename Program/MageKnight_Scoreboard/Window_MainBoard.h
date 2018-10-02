@@ -1,8 +1,8 @@
-#ifndef MAINBOARD_H
-#define MAINBOARD_H
+#ifndef Window_MainBoard_H
+#define Window_MainBoard_H
 
 #include <QMainWindow>
-#include "UserActionDialog.h"
+#include "Dialog_UserAction.h"
 #include "GameTimer.h"
 
 typedef enum table_items_t
@@ -30,16 +30,16 @@ typedef enum table_items_t
 }table_items_t;
 
 namespace Ui {
-class MainBoard;
+class Window_MainBoard;
 }
 
-class MainBoard : public QMainWindow
+class Window_MainBoard : public QMainWindow
 {
     Q_OBJECT
 
 public:
     // Constructor
-    explicit MainBoard(QWidget *parent = 0);
+    explicit Window_MainBoard(QWidget *parent = nullptr);
 
     // Public methods
     void allocatePlayers(unsigned int playerCount);
@@ -48,7 +48,7 @@ public:
     void setDayCount(unsigned int dayCount);
 
     // Destructor
-    ~MainBoard();
+    ~Window_MainBoard();
 
 private slots:
 
@@ -90,8 +90,8 @@ private:
     std::vector <QString> greatestTitles;
 
     // Private members
-    Ui::MainBoard *ui;
-    UserActionDialog *actionDialog;
+    Ui::Window_MainBoard *ui;
+    Dialog_UserAction *actionDialog;
 
     GameTimer *mpTimer = new GameTimer();
     unsigned long mGraphTimerMaxRange = 60;
@@ -107,4 +107,4 @@ private:
     QString mStyle_PushButton_disabled = " QPushButton {border-image: url(:/images/images/PushButton_disabled.png); font: 75 italic 14pt 'Cambria'; color: rgb(72, 52, 24) }";
 };
 
-#endif // MAINBOARD_H
+#endif // Window_MainBoard_H

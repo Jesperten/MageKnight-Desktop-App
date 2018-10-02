@@ -1,5 +1,5 @@
-#ifndef USERACTIONDIALOG_H
-#define USERACTIONDIALOG_H
+#ifndef Dialog_UserAction_H
+#define Dialog_UserAction_H
 
 #include <QDialog>
 #include <QString>
@@ -25,19 +25,19 @@ typedef enum score_stat_t
 }score_stat_t;
 
 namespace Ui {
-class UserActionDialog;
+class Dialog_UserAction;
 }
 
-class UserActionDialog : public QDialog
+class Dialog_UserAction : public QDialog
 {
     Q_OBJECT
 
 public:
     // Constructor
-    explicit UserActionDialog(QWidget *parent = 0);
+    explicit Dialog_UserAction(QWidget *parent = 0);
 
     // Destructor
-    ~UserActionDialog();
+    ~Dialog_UserAction();
 
     // Public members
     Action mplayerAction;
@@ -74,7 +74,7 @@ private slots:
 private:
 
     // Private members
-    Ui::UserActionDialog *ui;
+    Ui::Dialog_UserAction *ui;
     std::vector<QString> mActionList;
     std::vector<QString> mOptionalListDungeon;
     std::vector<QString> mOptionalListLabyrinth;
@@ -102,4 +102,4 @@ private:
     void removeUnit(void);
 };
 
-#endif // USERACTIONDIALOG_H
+#endif // Dialog_UserAction_H

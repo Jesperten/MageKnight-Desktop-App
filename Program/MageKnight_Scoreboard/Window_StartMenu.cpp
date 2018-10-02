@@ -1,11 +1,11 @@
-#include "StartWindow.h"
-#include "ui_StartWindow.h"
-#include "MainBoard.h"
+#include "Window_StartMenu.h"
+#include "ui_Window_StartMenu.h"
+#include "Window_MainBoard.h"
 #include "Player.h"
 
-StartWindow::StartWindow(QWidget *parent) :
+Window_StartMenu::Window_StartMenu(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::StartWindow)
+    ui(new Ui::Window_StartMenu)
 {
     ui->setupUi(this);
     ui->stackedWidget->setStyleSheet("background-image:url(./images/Start_background.jpg)");
@@ -19,18 +19,18 @@ StartWindow::StartWindow(QWidget *parent) :
     mStyle_CharacterKrang     = " QFrame {border-image: url(:/images/images/CharacterKrang.jpg); border: 1px solid white;}";
 }
 
-StartWindow::~StartWindow()
+Window_StartMenu::~Window_StartMenu()
 {
     delete ui;
 }
 
-void StartWindow::on_pushButton_newGame_clicked()
+void Window_StartMenu::on_pushButton_newGame_clicked()
 {
     ui_newGameSetupClean(); // Create a clean view for the "New Game" menu
     ui->stackedWidget->setCurrentIndex(1); // Go to the "New Game" menu view
 }
 
-void StartWindow::on_pushButton_returnToStart_clicked()
+void Window_StartMenu::on_pushButton_returnToStart_clicked()
 {
     // Clear all created players and clear the table
     // TODO: create a "All_Players_destruction" method and call it from here
@@ -38,12 +38,12 @@ void StartWindow::on_pushButton_returnToStart_clicked()
     ui->stackedWidget->setCurrentIndex(0); // Go back to the "Start" menu view
 }
 
-void StartWindow::on_pushButton_Exit_clicked()
+void Window_StartMenu::on_pushButton_Exit_clicked()
 {
     this->close();
 }
 
-void StartWindow::on_pushButton_startGame_clicked()
+void Window_StartMenu::on_pushButton_startGame_clicked()
 {
     this->hide();
 
@@ -51,10 +51,10 @@ void StartWindow::on_pushButton_startGame_clicked()
     unsigned int number_of_cities = ui->spinBox_cityCount->value();
     unsigned int number_of_days = ui->spinBox_dayCount->value();
 
-    mainBoard = new MainBoard();
-    mainBoard->allocatePlayers(number_of_players);
-    mainBoard->allocateCities(number_of_cities);
-    mainBoard->setDayCount(number_of_days);
+    mWindow_MainBoard = new Window_MainBoard();
+    mWindow_MainBoard->allocatePlayers(number_of_players);
+    mWindow_MainBoard->allocateCities(number_of_cities);
+    mWindow_MainBoard->setDayCount(number_of_days);
 
     int playerID = 0;
     QString playerName = "";
@@ -65,13 +65,13 @@ void StartWindow::on_pushButton_startGame_clicked()
         playerID = i;
         playerName = ui->tableWidget_listOfPlayers->item(playerID-1, 1)->text();
         playerCharacter = ui->tableWidget_listOfPlayers->item(playerID-1, 2)->text();
-        mainBoard->addPlayer(playerID, playerName, playerCharacter);
+        mWindow_MainBoard->addPlayer(playerID, playerName, playerCharacter);
     }
 
-    mainBoard->showFullScreen();
+    mWindow_MainBoard->showFullScreen();
 }
 
-void StartWindow::on_pushButton_addPlayer_clicked()
+void Window_StartMenu::on_pushButton_addPlayer_clicked()
 {
     unsigned int playerID = ui->tableWidget_listOfPlayers->rowCount() + 1;
     QString playerName = ui->lineEdit_playerName->text();
@@ -91,7 +91,7 @@ void StartWindow::on_pushButton_addPlayer_clicked()
     startButtonControlCheck();
 }
 
-void StartWindow::on_comboBox_playerCharacter_currentIndexChanged(const QString &arg1)
+void Window_StartMenu::on_comboBox_playerCharacter_currentIndexChanged(const QString &arg1)
 {
     if((arg1 == "Select Character") || (ui->lineEdit_playerName->text() == "")){
         ui->pushButton_addPlayer->setEnabled(false);
@@ -144,7 +144,7 @@ void StartWindow::on_comboBox_playerCharacter_currentIndexChanged(const QString 
     }
 }
 
-void StartWindow::on_lineEdit_playerName_textChanged(const QString &arg1)
+void Window_StartMenu::on_lineEdit_playerName_textChanged(const QString &arg1)
 {
     if((arg1 == "") || (ui->comboBox_playerCharacter->currentText() == "Select Character")){
         ui->pushButton_addPlayer->setEnabled(false);
@@ -155,7 +155,7 @@ void StartWindow::on_lineEdit_playerName_textChanged(const QString &arg1)
 }
 
 
-void StartWindow::ui_newGameSetupClean()
+void Window_StartMenu::ui_newGameSetupClean()
 {
     ui->tableWidget_listOfPlayers->setRowCount(0);
     ui->tableWidget_listOfPlayers->setColumnCount(3);
@@ -178,7 +178,7 @@ void StartWindow::ui_newGameSetupClean()
     startButtonControlCheck();
 }
 
-void StartWindow::startButtonControlCheck()
+void Window_StartMenu::startButtonControlCheck()
 {
     // Check the setup status before enabling the "Start Game" Button
     if((ui->tableWidget_listOfPlayers->rowCount() == 0) || (ui->spinBox_dayCount->value() == 0))
@@ -191,12 +191,12 @@ void StartWindow::startButtonControlCheck()
     }
 }
 
-void StartWindow::on_pushButton_loadGame_clicked()
+void Window_StartMenu::on_pushButton_loadGame_clicked()
 {
 
 }
 
-void StartWindow::on_spinBox_dayCount_valueChanged(int arg1)
+void Window_StartMenu::on_spinBox_dayCount_valueChanged(int arg1)
 {
     startButtonControlCheck();
 }

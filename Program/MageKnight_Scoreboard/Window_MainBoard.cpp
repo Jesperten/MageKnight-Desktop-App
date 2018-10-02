@@ -1,16 +1,16 @@
 #include <vector>
 #include <QVector>
-#include "MainBoard.h"
-#include "ui_MainBoard.h"
+#include "Window_MainBoard.h"
+#include "ui_Window_MainBoard.h"
 #include "Player.h"
-#include "AreYouSureDialog.h"
-#include "UserActionDialog.h"
-#include "AddCityDialog.h"
+#include "Dialog_EndGame.h"
+#include "Dialog_UserAction.h"
+#include "Dialog_AddCity.h"
 #include "City.h"
 
-MainBoard::MainBoard(QWidget *parent) :
+Window_MainBoard::Window_MainBoard(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainBoard)
+    ui(new Ui::Window_MainBoard)
 {
     ui->setupUi(this);
 
@@ -23,12 +23,12 @@ MainBoard::MainBoard(QWidget *parent) :
     mpTimer->startTimer();
 }
 
-MainBoard::~MainBoard()
+Window_MainBoard::~Window_MainBoard()
 {
     delete ui;
 }
 
-void MainBoard::allocatePlayers(unsigned int playerCount)
+void Window_MainBoard::allocatePlayers(unsigned int playerCount)
 {
     MageKnight_Player.resize(playerCount);
     PlayerRank.resize(playerCount);
@@ -46,7 +46,7 @@ void MainBoard::allocatePlayers(unsigned int playerCount)
     }
 }
 
-void MainBoard::addPlayer(unsigned int ID, QString playerName, QString playerCharacter)
+void Window_MainBoard::addPlayer(unsigned int ID, QString playerName, QString playerCharacter)
 {
     MageKnight_Player.at(ID-1).setName(playerName);
     MageKnight_Player.at(ID-1).setCharacter(playerCharacter);
@@ -58,7 +58,7 @@ void MainBoard::addPlayer(unsigned int ID, QString playerName, QString playerCha
     ui->customPlot->graph(int(ID)-1)->setName(MageKnight_Player.at(ID-1).mName);
 }
 
-void MainBoard::allocateCities(unsigned int cityCount)
+void Window_MainBoard::allocateCities(unsigned int cityCount)
 {
     if (cityCount == 0)
     {
@@ -81,12 +81,12 @@ void MainBoard::allocateCities(unsigned int cityCount)
     }
 }
 
-void MainBoard::setDayCount(unsigned int dayCount)
+void Window_MainBoard::setDayCount(unsigned int dayCount)
 {
     mDayCount = dayCount;
 }
 
-void MainBoard::updatePlayerStats(void)
+void Window_MainBoard::updatePlayerStats(void)
 {
     std::vector <QString> playerStats;
     playerStats.resize(NUMBER_OF_TABLE_ITEMS);
@@ -180,7 +180,7 @@ void MainBoard::updatePlayerStats(void)
     ui->tableWidget_players->resizeColumnsToContents();
 }
 
-void MainBoard::updateCityStats(Action action)
+void Window_MainBoard::updateCityStats(Action action)
 {
     if (action.mMainActionID == ACTION_ID_CITY)
     {
@@ -206,7 +206,7 @@ void MainBoard::updateCityStats(Action action)
     }
 }
 
-void MainBoard::updatePlayerRanks(void)
+void Window_MainBoard::updatePlayerRanks(void)
 {
     unsigned int maxValue = 0;
     unsigned int maxIndex = 0;
@@ -240,7 +240,7 @@ void MainBoard::updatePlayerRanks(void)
     }
 }
 
-void MainBoard::updateCityList(void)
+void Window_MainBoard::updateCityList(void)
 {
     QStringList cityStats;
 
@@ -263,7 +263,7 @@ void MainBoard::updateCityList(void)
     ui->tableWidget_cities->resizeColumnsToContents();
 }
 
-void MainBoard::findGreatestTitles(void)
+void Window_MainBoard::findGreatestTitles(void)
 {
     for (unsigned int i = 0; i < NUMBER_OF_GREATEST_TITLES; ++i)
     {
@@ -332,7 +332,7 @@ void MainBoard::findGreatestTitles(void)
     }
 }
 
-void MainBoard::updateGreatestTitleList(void)
+void Window_MainBoard::updateGreatestTitleList(void)
 {
     for (unsigned int i = 0; i < NUMBER_OF_GREATEST_TITLES; ++i)
     {
@@ -342,7 +342,7 @@ void MainBoard::updateGreatestTitleList(void)
     ui->tableWidget_greatestTitles->resizeColumnsToContents();
 }
 
-void MainBoard::findCityLeader(unsigned int cityID)
+void Window_MainBoard::findCityLeader(unsigned int cityID)
 {
     if (MageKnight_Cities.at(cityID).mConquered)
     {
@@ -426,7 +426,7 @@ void MainBoard::findCityLeader(unsigned int cityID)
 }
 
 
-void MainBoard::playerTableSetupClean(void)
+void Window_MainBoard::playerTableSetupClean(void)
 {
     std::vector <QString> playerTableHeader;
     playerTableHeader.resize(NUMBER_OF_TABLE_ITEMS);
@@ -468,7 +468,7 @@ void MainBoard::playerTableSetupClean(void)
     ui->tableWidget_players->resizeColumnsToContents();
 }
 
-void MainBoard::cityTableSetupClean(void)
+void Window_MainBoard::cityTableSetupClean(void)
 {
     QStringList cityTableHeader;
 
@@ -496,7 +496,7 @@ void MainBoard::cityTableSetupClean(void)
     ui->tableWidget_cities->setFocusPolicy(Qt::NoFocus); // Avoid selecting and highlighting of cells
 }
 
-void MainBoard::greatestTitleTableSetupClean(void)
+void Window_MainBoard::greatestTitleTableSetupClean(void)
 {
     ui->tableWidget_greatestTitles->setRowCount(NUMBER_OF_GREATEST_TITLES);
     ui->tableWidget_greatestTitles->setColumnCount(2);
@@ -529,7 +529,7 @@ void MainBoard::greatestTitleTableSetupClean(void)
     updateGreatestTitleList();
 }
 
-void MainBoard::graphWidgetSetupClean(void)
+void Window_MainBoard::graphWidgetSetupClean(void)
 {
     QColor plotAxisColor = QColor(190, 157, 56, 192);
 
@@ -556,7 +556,7 @@ void MainBoard::graphWidgetSetupClean(void)
     ui->customPlot->xAxis->setTicker(dateTicker);
 }
 
-void MainBoard::updateGraphPlots(void)
+void Window_MainBoard::updateGraphPlots(void)
 {
     unsigned int Nplayers = MageKnight_Player.size();
 
@@ -568,7 +568,7 @@ void MainBoard::updateGraphPlots(void)
     ui->customPlot->replot();
 }
 
-void MainBoard::timerUpdate(unsigned int h, unsigned int m, unsigned int s)
+void Window_MainBoard::timerUpdate(unsigned int h, unsigned int m, unsigned int s)
 {
     QString buttonText = "Play/Pause Game\n Game Time: ";
 
@@ -603,9 +603,9 @@ void MainBoard::timerUpdate(unsigned int h, unsigned int m, unsigned int s)
     updateGraphPlots();
 }
 
-void MainBoard::on_pushButton_endGame_clicked()
+void Window_MainBoard::on_pushButton_endGame_clicked()
 {
-    AreYourSureDialog sureDialog(this);
+    Dialog_EndGame sureDialog(this);
 
     if(sureDialog.exec() == QDialog::Accepted)
     {
@@ -613,9 +613,9 @@ void MainBoard::on_pushButton_endGame_clicked()
     }
 }
 
-void MainBoard::on_pushButton_enterUserAction_clicked()
+void Window_MainBoard::on_pushButton_enterUserAction_clicked()
 {
-    UserActionDialog actionDialog(this);
+    Dialog_UserAction actionDialog(this);
 
     unsigned int playerCount = MageKnight_Player.size();
     unsigned int cityCount = MageKnight_Cities.size();
@@ -670,11 +670,11 @@ void MainBoard::on_pushButton_enterUserAction_clicked()
         }
 
         updateGreatestTitleList();
-        updatePlayerStats(); // Update the player list view on the MainBoard screen
+        updatePlayerStats(); // Update the player list view on the Window_MainBoard screen
     }
 }
 
-void MainBoard::on_pushButton_playPauseGame_clicked()
+void Window_MainBoard::on_pushButton_playPauseGame_clicked()
 {
     if (mpTimer->isTimerActive())
     {
@@ -694,9 +694,9 @@ void MainBoard::on_pushButton_playPauseGame_clicked()
     }
 }
 
-void MainBoard::on_pushButton_cityDiscovered_clicked()
+void Window_MainBoard::on_pushButton_cityDiscovered_clicked()
 {
-    AddCityDialog cityDialog(this);
+    Dialog_AddCity cityDialog(this);
 
     if (cityDialog.exec() == QDialog::Accepted)
     {       
@@ -725,42 +725,42 @@ void MainBoard::on_pushButton_cityDiscovered_clicked()
     }
 }
 
-void MainBoard::on_pushButton_enterUserAction_pressed()
+void Window_MainBoard::on_pushButton_enterUserAction_pressed()
 {
     ui->pushButton_enterUserAction->setStyleSheet(mStyle_PushButton_pressed);
 }
 
-void MainBoard::on_pushButton_enterUserAction_released()
+void Window_MainBoard::on_pushButton_enterUserAction_released()
 {
     ui->pushButton_enterUserAction->setStyleSheet(mStyle_PushButton_normal);
 }
 
-void MainBoard::on_pushButton_cityDiscovered_pressed()
+void Window_MainBoard::on_pushButton_cityDiscovered_pressed()
 {
     ui->pushButton_cityDiscovered->setStyleSheet(mStyle_PushButton_pressed);
 }
 
-void MainBoard::on_pushButton_cityDiscovered_released()
+void Window_MainBoard::on_pushButton_cityDiscovered_released()
 {
     ui->pushButton_cityDiscovered->setStyleSheet(mStyle_PushButton_normal);
 }
 
-void MainBoard::on_pushButton_playPauseGame_pressed()
+void Window_MainBoard::on_pushButton_playPauseGame_pressed()
 {
     ui->pushButton_playPauseGame->setStyleSheet(mStyle_PushButton_pressed);
 }
 
-void MainBoard::on_pushButton_playPauseGame_released()
+void Window_MainBoard::on_pushButton_playPauseGame_released()
 {
     ui->pushButton_playPauseGame->setStyleSheet(mStyle_PushButton_normal);
 }
 
-void MainBoard::on_pushButton_endGame_pressed()
+void Window_MainBoard::on_pushButton_endGame_pressed()
 {
     ui->pushButton_endGame->setStyleSheet(mStyle_PushButton_pressed);
 }
 
-void MainBoard::on_pushButton_endGame_released()
+void Window_MainBoard::on_pushButton_endGame_released()
 {
     ui->pushButton_endGame->setStyleSheet(mStyle_PushButton_normal);
 }

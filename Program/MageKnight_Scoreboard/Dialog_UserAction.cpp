@@ -2,24 +2,24 @@
 #include <QtWidgets>
 #include <QString>
 #include <QSoundEffect>
-#include "UserActionDialog.h"
-#include "ui_UserActionDialog.h"
+#include "Dialog_UserAction.h"
+#include "ui_Dialog_UserAction.h"
 #include "Action.h"
 #include "Player.h"
 #include "City.h"
 
-std::vector<QSoundEffect> mSoundEffects(8);
+static std::vector<QSoundEffect> mSoundEffects(8);
 
-UserActionDialog::UserActionDialog(QWidget *parent) :
+Dialog_UserAction::Dialog_UserAction(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::UserActionDialog)
+    ui(new Ui::Dialog_UserAction)
 {
     playerList.resize(1);
     cityList.resize(1);
 
     // Reseed the random generator with the current time as parameter.
     // This is to ensure a more true random nature
-    srand(unsigned(time(NULL)));
+    srand(unsigned(time(nullptr)));
 
     mSoundEffects.at(0).setSource(QUrl("qrc:/sounds/sounds/sound1.wav"));
     mSoundEffects.at(1).setSource(QUrl("qrc:/sounds/sounds/sound2.wav"));
@@ -35,7 +35,7 @@ UserActionDialog::UserActionDialog(QWidget *parent) :
     ui_userActionSetupClean();
 }
 
-UserActionDialog::~UserActionDialog()
+Dialog_UserAction::~Dialog_UserAction()
 {
     delete ui;
 }
@@ -44,24 +44,24 @@ UserActionDialog::~UserActionDialog()
   * PUBLIC METHODS *
   *******************/
 
-void UserActionDialog::allocatePlayers(unsigned int playerCount)
+void Dialog_UserAction::allocatePlayers(unsigned int playerCount)
 {
     playerList.resize(playerCount);
 }
 
-void UserActionDialog::addPlayer(unsigned int ID, Player player)
+void Dialog_UserAction::addPlayer(unsigned int ID, Player player)
 {
     playerList.at(ID-1) = player;
     QString playerName = player.mName + " (" + QString::number(ID) + ")";
     ui->comboBox_playerList->addItem(playerName);
 }
 
-void UserActionDialog::allocateCities(unsigned int cityCount)
+void Dialog_UserAction::allocateCities(unsigned int cityCount)
 {
     cityList.resize(cityCount);
 }
 
-void UserActionDialog::addCity(unsigned int ID, City city)
+void Dialog_UserAction::addCity(unsigned int ID, City city)
 {
     cityList.at(ID-1) = city;
 }
@@ -71,7 +71,7 @@ void UserActionDialog::addCity(unsigned int ID, City city)
   * PRIVATE METHODS *
   *******************/
 
-void UserActionDialog::ui_userActionSetupClean(void)
+void Dialog_UserAction::ui_userActionSetupClean(void)
 {
     std::vector<QString> tableStatsItems(NUMBER_OF_SCORE_STATS);
     QStringList tableMonstersItems;
@@ -154,7 +154,7 @@ void UserActionDialog::ui_userActionSetupClean(void)
     on_comboBox_playerList_currentIndexChanged(0);
 }
 
-void UserActionDialog::acceptButtonControlCheck(void)
+void Dialog_UserAction::acceptButtonControlCheck(void)
 {
     bool finalStatement = true;
 
@@ -232,7 +232,7 @@ void UserActionDialog::acceptButtonControlCheck(void)
     ui->pushButton_enterUserAction->setEnabled(finalStatement);
 }
 
-void UserActionDialog::setOptionalComboBox(QString setting)
+void Dialog_UserAction::setOptionalComboBox(QString setting)
 {
     const QSignalBlocker blocker(ui->comboBox_optional);
     ui->comboBox_optional->clear();
@@ -243,7 +243,7 @@ void UserActionDialog::setOptionalComboBox(QString setting)
         ui->comboBox_optional->addItem("Optional parameter");
     }
 
-    // Set the optional combobox to include all revealed cities (revealed and listed in the MainBoard scope)
+    // Set the optional combobox to include all revealed cities (revealed and listed in the Window_MainBoard scope)
     else if (setting == "City")
     {
         ui->comboBox_optional->addItem("Select City");
@@ -319,7 +319,7 @@ void UserActionDialog::setOptionalComboBox(QString setting)
     }
 }
 
-void UserActionDialog::updateResults(void)
+void Dialog_UserAction::updateResults(void)
 {
     std::vector<QString> actionResultList(NUMBER_OF_SCORE_STATS);
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
@@ -375,7 +375,7 @@ void UserActionDialog::updateResults(void)
     }
 }
 
-void UserActionDialog::clearScoreTable(void)
+void Dialog_UserAction::clearScoreTable(void)
 {
     for (int i = 0; i < NUMBER_OF_SCORE_STATS; ++i)
     {
@@ -383,7 +383,7 @@ void UserActionDialog::clearScoreTable(void)
     }
 }
 
-void UserActionDialog::enableForm(bool enabled)
+void Dialog_UserAction::enableForm(bool enabled)
 {
     // Enable / disabled all comboboxes and spinboxes when the PlayerList index changes
     ui->comboBox_actionList->setEnabled(enabled);
@@ -399,7 +399,7 @@ void UserActionDialog::enableForm(bool enabled)
     ui->pushButton_addUnit->setEnabled(enabled);
 }
 
-void UserActionDialog::defineStringLists(void)
+void Dialog_UserAction::defineStringLists(void)
 {
     mActionList.resize(NUMBER_OF_ACTION_IDS);
     mActionList[ACTION_ID_TEXT]              = "Select Action";
@@ -461,7 +461,7 @@ void UserActionDialog::defineStringLists(void)
     mOptionalListSpawningGrounds[OPTIONAL_SPAWNING_GROUNDS_ARTIFACT_3_FAME]            = "+1 Artifact, +3 Fame";
 }
 
-void UserActionDialog::addMonster(void)
+void Dialog_UserAction::addMonster(void)
 {
     // The new number of rows in the monster table is increased by one
     int rows = ui->tableWidget_monsters->rowCount() + 1;
@@ -475,7 +475,7 @@ void UserActionDialog::addMonster(void)
     if (rows > 1) ui->pushButton_deleteMonster->setEnabled(true);
 }
 
-void UserActionDialog::removeMonster(void)
+void Dialog_UserAction::removeMonster(void)
 {
     // The new number of rows in the monster table is increased by one
     int rows = ui->tableWidget_monsters->rowCount() - 1;
@@ -486,7 +486,7 @@ void UserActionDialog::removeMonster(void)
     if (rows <= 1) ui->pushButton_deleteMonster->setEnabled(false);
 }
 
-void UserActionDialog::addUnit(Unit unit)
+void Dialog_UserAction::addUnit(Unit unit)
 {
     // The new number of rows in the monster table is increased by one
     int rows = ui->tableWidget_units->rowCount() + 1;
@@ -500,7 +500,7 @@ void UserActionDialog::addUnit(Unit unit)
     if (rows > 1) ui->pushButton_removeUnit->setEnabled(true);
 }
 
-void UserActionDialog::removeUnit(void)
+void Dialog_UserAction::removeUnit(void)
 {
     // The new number of rows in the monster table is increased by one
     int rows = ui->tableWidget_units->rowCount() - 1;
@@ -511,7 +511,7 @@ void UserActionDialog::removeUnit(void)
     if (rows <= 1) ui->pushButton_removeUnit->setEnabled(false);
 }
 
-void UserActionDialog::monsterTableAddRow(unsigned int rows)
+void Dialog_UserAction::monsterTableAddRow(unsigned int rows)
 {
     std::vector<QString> monsterTypes(NUMBER_OF_MONSTER_TYPES);
     std::vector<QColor> monsterTypeColors(NUMBER_OF_MONSTER_TYPES);
@@ -572,7 +572,7 @@ void UserActionDialog::monsterTableAddRow(unsigned int rows)
     connect(rampagingState, SIGNAL(stateChanged(int)),        this, SLOT(monsterTableWidget_valueChanged()));
 }
 
-void UserActionDialog::unitTableAddRow(unsigned int rows, Unit unit)
+void Dialog_UserAction::unitTableAddRow(unsigned int rows, Unit unit)
 {
     QComboBox* unitType = new QComboBox;
     QCheckBox* woundState = new QCheckBox;
@@ -648,17 +648,17 @@ void UserActionDialog::unitTableAddRow(unsigned int rows, Unit unit)
   * AKA. PRIVATE SLOTS *
   **********************/
 
-void UserActionDialog::on_pushButton_enterUserAction_clicked()
+void Dialog_UserAction::on_pushButton_enterUserAction_clicked()
 {
     this->accept();
 }
 
-void UserActionDialog::on_pushButton_cancel_clicked()
+void Dialog_UserAction::on_pushButton_cancel_clicked()
 {
     this->reject();
 }
 
-void UserActionDialog::on_pushButton_addMonster_clicked()
+void Dialog_UserAction::on_pushButton_addMonster_clicked()
 {
     addMonster(); // Adds a monster to the action monster list and displays it on the monster table
     acceptButtonControlCheck();
@@ -667,28 +667,28 @@ void UserActionDialog::on_pushButton_addMonster_clicked()
     mSoundEffects.at(i).play();
 }
 
-void UserActionDialog::on_pushButton_deleteMonster_clicked()
+void Dialog_UserAction::on_pushButton_deleteMonster_clicked()
 {
     removeMonster(); // Adds a monster to the action monster list and displays it on the monster table
     updateResults();
     acceptButtonControlCheck();
 }
 
-void UserActionDialog::on_pushButton_addUnit_clicked()
+void Dialog_UserAction::on_pushButton_addUnit_clicked()
 {
     Unit unit;
     addUnit(unit);
     acceptButtonControlCheck();
 }
 
-void UserActionDialog::on_pushButton_removeUnit_clicked()
+void Dialog_UserAction::on_pushButton_removeUnit_clicked()
 {
     removeUnit(); // Adds a monster to the action monster list and displays it on the monster table
     updateResults();
     acceptButtonControlCheck();
 }
 
-void UserActionDialog::on_comboBox_playerList_currentIndexChanged(int index)
+void Dialog_UserAction::on_comboBox_playerList_currentIndexChanged(int index)
 {    
     // Clear the score view, monsterlist and unitList and reset the action instance
     clearScoreTable();
@@ -721,7 +721,7 @@ void UserActionDialog::on_comboBox_playerList_currentIndexChanged(int index)
     acceptButtonControlCheck();
 }
 
-void UserActionDialog::on_comboBox_actionList_currentIndexChanged(int index)
+void Dialog_UserAction::on_comboBox_actionList_currentIndexChanged(int index)
 {
     mplayerAction.mPlayerID = unsigned(ui->comboBox_playerList->currentIndex());
     mplayerAction.mMainActionID = unsigned(index);
@@ -802,7 +802,7 @@ void UserActionDialog::on_comboBox_actionList_currentIndexChanged(int index)
     updateResults();
 }
 
-void UserActionDialog::on_comboBox_optional_currentIndexChanged(int index)
+void Dialog_UserAction::on_comboBox_optional_currentIndexChanged(int index)
 {
     mplayerAction.mOptionalID = unsigned(index);
 
@@ -814,7 +814,7 @@ void UserActionDialog::on_comboBox_optional_currentIndexChanged(int index)
     updateResults();
 }
 
-void UserActionDialog::on_comboBox_successFail_currentIndexChanged(const QString &arg1)
+void Dialog_UserAction::on_comboBox_successFail_currentIndexChanged(const QString &arg1)
 {
     if      (arg1 == "Success") mplayerAction.mSuccessFail = true;
     else if (arg1 == "Fail")    mplayerAction.mSuccessFail = false;
@@ -824,7 +824,7 @@ void UserActionDialog::on_comboBox_successFail_currentIndexChanged(const QString
     updateResults();
 }
 
-void UserActionDialog::on_spinBox_woundCounts_valueChanged(int arg1)
+void Dialog_UserAction::on_spinBox_woundCounts_valueChanged(int arg1)
 {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
     unsigned int availableWounds = playerList.at(playerIndex).mWounds;
@@ -843,7 +843,7 @@ void UserActionDialog::on_spinBox_woundCounts_valueChanged(int arg1)
     updateResults();
 }
 
-void UserActionDialog::on_spinBox_addRep_valueChanged(int arg1)
+void Dialog_UserAction::on_spinBox_addRep_valueChanged(int arg1)
 {
     mplayerAction.mAddRepStep = arg1;
 
@@ -851,7 +851,7 @@ void UserActionDialog::on_spinBox_addRep_valueChanged(int arg1)
     updateResults();
 }
 
-void UserActionDialog::on_spinBox_addFame_valueChanged(int arg1)
+void Dialog_UserAction::on_spinBox_addFame_valueChanged(int arg1)
 {
     mplayerAction.mAddFame = unsigned(arg1);
 
@@ -859,7 +859,7 @@ void UserActionDialog::on_spinBox_addFame_valueChanged(int arg1)
     updateResults();
 }
 
-void UserActionDialog::on_spinBox_addCrystals_valueChanged(int arg1)
+void Dialog_UserAction::on_spinBox_addCrystals_valueChanged(int arg1)
 {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
     int availableCrystals = int(playerList.at(playerIndex).mCrystals);
@@ -878,7 +878,7 @@ void UserActionDialog::on_spinBox_addCrystals_valueChanged(int arg1)
     updateResults();
 }
 
-void UserActionDialog::on_spinBox_thrownArtifacts_valueChanged(int arg1)
+void Dialog_UserAction::on_spinBox_thrownArtifacts_valueChanged(int arg1)
 {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
     unsigned int availableArtifacts = playerList.at(playerIndex).mArtifacts;
@@ -897,7 +897,7 @@ void UserActionDialog::on_spinBox_thrownArtifacts_valueChanged(int arg1)
     updateResults();
 }
 
-void UserActionDialog::on_spinBox_thrownAAC_valueChanged(int arg1)
+void Dialog_UserAction::on_spinBox_thrownAAC_valueChanged(int arg1)
 {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
     unsigned int availableAAC = playerList.at(playerIndex).mAActionCards;
@@ -918,7 +918,7 @@ void UserActionDialog::on_spinBox_thrownAAC_valueChanged(int arg1)
 }
 
 
-void UserActionDialog::monsterTableWidget_valueChanged()
+void Dialog_UserAction::monsterTableWidget_valueChanged()
 {
     int nMonsters = ui->tableWidget_monsters->rowCount()-1;
 
@@ -966,7 +966,7 @@ void UserActionDialog::monsterTableWidget_valueChanged()
     updateResults();
 }
 
-void UserActionDialog::unitTableWidget_valueChanged(void)
+void Dialog_UserAction::unitTableWidget_valueChanged(void)
 {
     int nUnits = ui->tableWidget_units->rowCount()-1;
 

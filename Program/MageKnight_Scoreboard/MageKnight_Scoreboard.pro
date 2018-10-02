@@ -28,38 +28,36 @@ SOURCES +=\
     GameTimer.cpp \
     Player.cpp \
     Main.cpp \
-    MainBoard.cpp \
-    StartWindow.cpp \
-    UserActionDialog.cpp \
     Monster.cpp \
     Unit.cpp \
-    InterAction.cpp \
     City.cpp \
-    AddCityDialog.cpp \
     qcustomplot.cpp \
-    AreYouSureDialog.cpp
+    Dialog_AddCity.cpp \
+    Dialog_EndGame.cpp \
+    Dialog_UserAction.cpp \
+    Window_MainBoard.cpp \
+    Window_StartMenu.cpp
 
 HEADERS  += \
     Action.h \
     GameTimer.h \
-    MainBoard.h \
     Player.h \
-    StartWindow.h \
-    UserActionDialog.h \
     Monster.h \
     Unit.h \
-    InterAction.h \
     City.h \
-    AddCityDialog.h \
     qcustomplot.h \
-    AreYouSureDialog.h
+    Dialog_AddCity.h \
+    Dialog_EndGame.h \
+    Dialog_UserAction.h \
+    Window_MainBoard.h \
+    Window_StartMenu.h
 
 FORMS    += \
-    MainBoard.ui \
-    StartWindow.ui \
-    UserActionDialog.ui \
-    AddCityDialog.ui \
-    AreYouSureDialog.ui
+    Dialog_AddCity.ui \
+    Dialog_EndGame.ui \
+    Dialog_UserAction.ui \
+    Window_MainBoard.ui \
+    Window_StartMenu.ui
 
 RESOURCES += \
     resources.qrc
