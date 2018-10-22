@@ -50,6 +50,7 @@ public:
     void setGreatestTitleState(greatest_title_items_t item, greatest_title_t state);
 
     // Public members
+    unsigned int mId = 0;
              int mScore = 0;
     unsigned int mLevel = 1;
     unsigned int mFame = 0;

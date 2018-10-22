@@ -4,7 +4,7 @@
 #include <QStringList>
 #include <vector>
 #include "Monster.h"
-#include "unit.h"
+#include "Unit.h"
 
 typedef enum action_id_t
 {

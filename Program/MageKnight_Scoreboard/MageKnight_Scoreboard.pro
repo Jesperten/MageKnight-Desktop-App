@@ -36,7 +36,8 @@ SOURCES +=\
     Dialog_EndGame.cpp \
     Dialog_UserAction.cpp \
     Window_MainBoard.cpp \
-    Window_StartMenu.cpp
+    GameEngine.cpp \
+    Dialog_StartMenu.cpp
 
 HEADERS  += \
     Action.h \
@@ -50,14 +51,16 @@ HEADERS  += \
     Dialog_EndGame.h \
     Dialog_UserAction.h \
     Window_MainBoard.h \
-    Window_StartMenu.h
+    GameEngine.h \
+    CharacterDescriptionTexts.h \
+    Dialog_StartMenu.h
 
 FORMS    += \
     Dialog_AddCity.ui \
     Dialog_EndGame.ui \
     Dialog_UserAction.ui \
     Window_MainBoard.ui \
-    Window_StartMenu.ui
+    Dialog_StartMenu.ui
 
 RESOURCES += \
     resources.qrc

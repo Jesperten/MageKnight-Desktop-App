@@ -10,7 +10,7 @@ class GameTimer : public QObject
 
 public:
     // Constructor
-    explicit GameTimer(QObject *parent = 0);
+    explicit GameTimer(QObject *parent = nullptr);
 
     // Public methods
     void startTimer();

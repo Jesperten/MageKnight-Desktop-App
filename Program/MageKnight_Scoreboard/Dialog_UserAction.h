@@ -34,7 +34,7 @@ class Dialog_UserAction : public QDialog
 
 public:
     // Constructor
-    explicit Dialog_UserAction(QWidget *parent = 0);
+    explicit Dialog_UserAction(QWidget *parent = nullptr);
 
     // Destructor
     ~Dialog_UserAction();

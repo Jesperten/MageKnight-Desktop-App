@@ -28,5 +28,7 @@
         <file>images/PushButton.png</file>
         <file>images/PushButton_disabled.png</file>
         <file>images/PushButton_pressed.png</file>
+        <file>images/CharacterBraevelar.jpg</file>
+        <file>images/CharacterWolfhawk.jpg</file>
     </qresource>
 </RCC>

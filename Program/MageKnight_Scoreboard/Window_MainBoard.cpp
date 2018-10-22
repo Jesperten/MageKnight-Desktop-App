@@ -609,7 +609,8 @@ void Window_MainBoard::on_pushButton_endGame_clicked()
 
     if(sureDialog.exec() == QDialog::Accepted)
     {
-        this->close();
+        QCoreApplication::exit(0);
+        //this->close();
     }
 }
 
