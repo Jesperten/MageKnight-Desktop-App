@@ -6,8 +6,7 @@
 #include "Monster.h"
 #include "Unit.h"
 
-typedef enum action_id_t
-{
+typedef enum action_id_t {
     ACTION_ID_TEXT,
     ACTION_ID_BURNED_MONASTERY,
     ACTION_ID_CITY,
@@ -26,16 +25,14 @@ typedef enum action_id_t
     NUMBER_OF_ACTION_IDS
 }action_id_t;
 
-typedef enum optional_dungeon_t
-{
+typedef enum optional_dungeon_t {
     OPTIONAL_DUNGEON_TEXT,
     OPTIONAL_DUNGEON_SPELL,
     OPTIONAL_DUNGEON_ARTIFACT,
     NUMBER_OF_OPTIONAL_DUNGEON_IDS
 }optional_dungeon_t;
 
-typedef enum optional_labyrinth_t
-{
+typedef enum optional_labyrinth_t {
     OPTIONAL_LABYRINTH_TEXT,
     OPTIONAL_LABYRINTH_1_AAC_2_CRYSTALS,
     OPTIONAL_LABYRINTH_1_AAC_1_SPELL,
@@ -43,8 +40,7 @@ typedef enum optional_labyrinth_t
     NUMBER_OF_OPTIONAL_LABYRINTH_IDS
 }optional_labyrinth_t;
 
-typedef enum optional_maze_t
-{
+typedef enum optional_maze_t {
     OPTIONAL_MAZE_TEXT,
     OPTIONAL_MAZE_2_CRYSTALS,
     OPTIONAL_MAZE_1_SPELL,
@@ -52,8 +48,7 @@ typedef enum optional_maze_t
     NUMBER_OF_OPTIONAL_MAZE_IDS
 }optional_maze_t;
 
-typedef enum optional_monster_den_t
-{
+typedef enum optional_monster_den_t {
     OPTIONAL_MONSTER_DEN_TEXT,
     OPTIONAL_MONSTER_DEN_2_CRYSTALS,
     OPTIONAL_MONSTER_DEN_1_CRYSTAL_1_FAME,
@@ -61,8 +56,7 @@ typedef enum optional_monster_den_t
     NUMBER_OF_OPTIONAL_MONSTER_DEN_IDS
 }optional_monster_den_t;
 
-typedef enum optional_ruin_t
-{
+typedef enum optional_ruin_t {
     OPTIONAL_RUIN_TEXT,
     OPTIONAL_RUIN_7_FAME,
     OPTIONAL_RUIN_10_FAME,
@@ -76,9 +70,8 @@ typedef enum optional_ruin_t
     NUMBER_OF_OPTIONAL_RUIN_IDS
 }optional_ruin_t;
 
-typedef enum optional_spawning_grounds_t
-{
-    OPTIONAL_SPAWNING_GROUNDS_TEXT,
+typedef enum optional_spawning_grounds_t {
+    OPTIONAL_SPAWNING_GROUNDS_TEXT = 0,
     OPTIONAL_SPAWNING_GROUNDS_ARTIFACT_3_CRYSTALS,
     OPTIONAL_SPAWNING_GROUNDS_ARTIFACT_2_CRYSTALS_1_FAME,
     OPTIONAL_SPAWNING_GROUNDS_ARTIFACT_1_CRYSTALS_2_FAME,
@@ -87,8 +80,8 @@ typedef enum optional_spawning_grounds_t
 }optional_spawning_grounds_t;
 
 
-class Action
-{
+class Action {
+
 public:
     // Constructor
     Action();

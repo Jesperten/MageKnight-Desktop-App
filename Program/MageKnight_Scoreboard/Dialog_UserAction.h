@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QString>
 #include <QTableWidgetItem>
+#include <QSoundEffect>
 #include <vector>
 #include "Player.h"
 #include "Action.h"
@@ -43,12 +44,14 @@ public:
     Action mplayerAction;
 
     // Public methods
-    void allocatePlayers(unsigned int playerCount);
-    void addPlayer(unsigned int ID, Player player);
-    void allocateCities(unsigned int cityCount);
-    void addCity(unsigned int ID, City city);
+    void setDataLists(const std::vector<Player>& playerList, const std::vector<City>& cityList);
+
+signals:
+    void newTestUserAction(Action testAction);
 
 private slots:
+    void on_newPlayerAndCityGameEngineData(const std::vector<Player>& playerList, const std::vector<City>& cityList);
+    void on_newTempPlayerData(const Player& player, const Player& playerTemp);
     void on_pushButton_enterUserAction_clicked();
     void on_pushButton_cancel_clicked();
     void on_pushButton_addMonster_clicked();
@@ -83,8 +86,11 @@ private:
     std::vector<QString> mOptionalListRuins;
     std::vector<QString> mOptionalListSpawningGrounds;
 
-    std::vector<Player> playerList; // List of player objects (resized later)
-    std::vector<City> cityList;     // List of City objects (resized later)
+    QSoundEffect mSoundEffects[8];
+    //std::vector<QSoundEffect> mSoundEffects;
+
+    std::vector<Player> mPlayerListCopy; // List of player objects (resized later)
+    std::vector<City> mCityListCopy;     // List of City objects (resized later)
 
     // Private methods
     void ui_userActionSetupClean(void);

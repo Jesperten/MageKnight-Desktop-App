@@ -1,13 +1,11 @@
 #include "Action.h"
 
-Action::Action()
-{
+Action::Action() {
     mMonsters.resize(0);
     mUnits.resize(0);
 }
 
-void Action::reset()
-{
+void Action::reset() {
     mPlayerID = 0;
     mMainActionID = 0;
     mOptionalID = 0;
@@ -29,14 +27,12 @@ void Action::reset()
     mUnits.resize(0);
 }
 
-void Action::addMonster(unsigned int MonsterCount)
-{
+void Action::addMonster(unsigned int MonsterCount) {
     unsigned int N = mMonsters.size();
     mMonsters.resize(N+MonsterCount);
 }
 
-void Action::removeMonster(unsigned int MonsterCount)
-{
+void Action::removeMonster(unsigned int MonsterCount) {
     int N = int(mMonsters.size());
     int newN = N - int(MonsterCount);
 
@@ -44,14 +40,12 @@ void Action::removeMonster(unsigned int MonsterCount)
     else          mMonsters.resize(0);
 }
 
-void Action::addUnit(unsigned int UnitCount)
-{
+void Action::addUnit(unsigned int UnitCount) {
     unsigned int N = mUnits.size();
     mUnits.resize(N+UnitCount);
 }
 
-void Action::removeUnit(unsigned int UnitCount)
-{
+void Action::removeUnit(unsigned int UnitCount) {
     int N = int(mUnits.size());
     int newN = N - int(UnitCount);
 

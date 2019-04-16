@@ -4,30 +4,28 @@
 #include <QString>
 #include <QVector>
 #include <QColor>
-#include "Action.h"
+#include "Monster.h"
+#include "Unit.h"
 
-typedef enum greatest_title_items_t
-{
-    TABLE_ITEM_GREATEST_KNOWLEDGE,
-    TABLE_ITEM_GREATEST_LOOT,
-    TABLE_ITEM_GREATEST_LEADER,
-    TABLE_ITEM_GREATEST_CONQUEROR,
-    TABLE_ITEM_GREATEST_CITY_CONQUEROR,
-    TABLE_ITEM_GREATEST_ADVENTURER,
-    TABLE_ITEM_GREATEST_BEATING,
+typedef enum greatest_title_items_t {
+    TITLE_GREATEST_KNOWLEDGE,
+    TITLE_GREATEST_LOOT,
+    TITLE_GREATEST_LEADER,
+    TITLE_GREATEST_CONQUEROR,
+    TITLE_GREATEST_CITY_CONQUEROR,
+    TITLE_GREATEST_ADVENTURER,
+    TITLE_GREATEST_BEATING,
     NUMBER_OF_GREATEST_TITLES
 }greatest_title_items_t;
 
-typedef enum city_relation_t
-{
+typedef enum city_relation_t {
     CITY_RELATION_NONE,
     CITY_RELATION_HAS_TOKENS,
     CITY_RELATION_IS_TIED_LEADER,
     CITY_RELATION_IS_LEADER
 }city_relation_t;
 
-typedef enum greatest_title_t
-{
+typedef enum greatest_title_t {
     GREATEST_TITLE_NONE,
     GREATEST_TITLE_WIN_TIED,
     GREATEST_TITLE_WIN,
@@ -35,98 +33,50 @@ typedef enum greatest_title_t
 }greatest_title_t;
 
 
-class Player
-{
+class Player {
+
 public:
     // Constructor
     Player();
 
     // Public methods
-    void updateScore();
-    void setName(QString name);
-    void setCharacter(QString character);
-    void addAction(Action playerAction);
-    void setNumberOfCities(unsigned int cities);
-    void setGreatestTitleState(greatest_title_items_t item, greatest_title_t state);
-
-    // Public members
-    unsigned int mId = 0;
-             int mScore = 0;
-    unsigned int mLevel = 1;
-    unsigned int mFame = 0;
-             int mReputation = 0;
-    unsigned int mAActionCards = 0;
-    unsigned int mSpellCards = 0;
-    unsigned int mArtifacts = 0;
-    unsigned int mCrystals = 0;
-    unsigned int mWounds = 0;
-    unsigned int mAdventureSites = 0;
-    unsigned int mConquerings = 0;
-    unsigned int mCityTokensTotal = 0;
-
-    unsigned int mKnowledgePoints = 0;
-    unsigned int mLootPoints = 0;
-    unsigned int mLeaderPoints = 0;
-    unsigned int mConquerorPoints = 0;
-    unsigned int mAdventurerPoints = 0;
-             int mBeatingPoints = 0;
-    unsigned int mCityPoints = 0;
-
-    QVector<double> mPointData;
-    QVector<double> mTimeData;
-
-    std::vector<Unit> mUnits;
-    std::vector<Monster> mMonsters;
-    std::vector<unsigned int> mCityTokens;
-    std::vector<city_relation_t> mCityRelations;
-    std::vector<unsigned int> mGreatestScoreValues;
-    std::vector<greatest_title_t> mGreatestTitleStats;
-
-    QColor mPlayerColor;
-
-    QString mName = "";
-    QString mTitle = "";
-    QString mCharacter = "";
-
-private:    
-    // Private methods
-    void setTitle(); // uses auto-generator
-    void setLevel(unsigned int level);
     void addMonster(Monster monster);
     void addUnit(Unit unit);
-    void greatestTitlesScoreSetupClean(void);
-    void setOptionalDungeonBonus(unsigned optionalID);
-    void setOptionalLabyrinthBonus(unsigned optionalID);
-    void setOptionalMazeBonus(unsigned optionalID);
-    void setOptionalMonsterDenBonus(unsigned optionalID);
-    void setOptionalRuinBonus(unsigned optionalID);
-    void setOptionalSpawningGroundsBonus(unsigned optionalID);
+    void setNumberOfCities(unsigned int cities);
+    void setGreatestTitleState(greatest_title_items_t item, greatest_title_t state, int score);
 
-    unsigned int getTotalUnitPoints(void);
-    unsigned int getCityPoints(void);
-    int getGreatestTitlesScores(void);
-    unsigned int fameToLevel(unsigned int fame);
-    int repStepToRep(unsigned int repStep);
+    // Public members
+          QString mName = "";           // Player name (given at the player entrance)
+    //    QString mTitle = "";          // Player title (not used yet)
+          QString mCharacter = "";      // Player character (given at the player entrance)
+          QColor mPlayerColor;          // Player color (given at the player entrance)
+    unsigned int mRank = 0   ;          // Over-all game ranking
+    unsigned int mId = 0;               // Player ID
+             int mScore = 0;            // Total score (what actual matters and determines the rankings)
+    unsigned int mLevel = 1;            // The player level starts at level 1
+    unsigned int mFame = 0;             // Player fame (increases when killing monsters etc.)
+             int mReputation = 0;       // Player reputation (starts at 0) - can be both positive (good influence) and negative (bad influence)
+    unsigned int mRepStep = 7;          // Reputation step is used to keep track of the reputation, as multiple steps has the same reputation level. The Initial Step is at the middle (Rep value = 0)
+    unsigned int mAActionCards = 0;     // Number of Advanced Action Cards (AAC)
+    unsigned int mSpellCards = 0;       // Number of Spell Cards
+    unsigned int mArtifacts = 0;        // Number of Artifacts
+    unsigned int mCrystals = 0;         // Number of Crystals
+    unsigned int mWounds = 0;           // Number of Wounds
+    unsigned int mAdventureSites = 0;   // Adventure sites successfully visted
+    unsigned int mConquerings = 0;      // Number of successful Conquerings
+    unsigned int mCityTokensTotal = 0;  // Total number of City Tokens (achieved when successfully attacking cities)
 
-    // Private members
-    unsigned int mRepStep = 7; // Initial RepStep is at the middle (Rep value = 0)
+    // ----------------------------------------------- Vector based Player data
+    std::vector<int> mBasicScoreValues;                // The individual scores used for finding the end-game greatest titles (Knowledge, loot, leader etc.)
+    std::vector<Unit> mUnits;                          // A vector of all the hired player units (dynamically reshapen at every action)
+    std::vector<Monster> mMonsters;                    // A vector of all the slain monsters
+    std::vector<unsigned int> mCityTokens;             // A vector of the number of city tokens (each entrance is a different city)
+    std::vector<city_relation_t> mCityRelations;       // A vector of the relation levels of each city (each entrance is a different city)
+    std::vector<greatest_title_t> mGreatestTitleStats; // The state of each Greatest Title (each entrance is a different title)
+    std::vector<int> mGreatestTitleScores;             // The additional score gained from each relevant Greatest Title (each entrance is a different title)
 
-    std::vector<std::vector<int>> mGreatestValues;
-    std::vector<int> mGreatestTitleScores;
-
-    unsigned int SCORE_PER_AAC = 1;
-    unsigned int SCORE_PER_SPELL = 2;
-    unsigned int SCORE_PER_ARTIFACT = 2;
-    unsigned int SCORE_PER_TWO_CRYSTALS = 1;
-    unsigned int SCORE_PER_UNIT_LEVEL = 1;
-    unsigned int SCORE_PER_CONQUERING = 2;     // Keep, Mage Tower and Monastery
-    unsigned int SCORE_PER_ADVENTURE_SITE = 2; // Dungeon, Tomb, Monster Den, Spawning Grounds, Ruins
-             int SCORE_PER_WOUND = -2;
-
-    unsigned int SCORE_PER_CITY_TOKEN = 0;
-    unsigned int SCORE_PER_CITY_PARTITION = 4;
-    unsigned int SCORE_PER_CITY_LEADERSHIP_TIED = 4;
-    unsigned int SCORE_PER_CITY_LEADERSHIP = 7;
+    QVector<double> mPointData; // Point data array for the graphical plot (and score history)
+    QVector<double> mTimeData;  // Corresponding time data array for the graphical plot (and score history)
 };
 
 #endif // PLAYER_H

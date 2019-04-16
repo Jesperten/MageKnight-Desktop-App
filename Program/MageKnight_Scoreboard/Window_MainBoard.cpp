@@ -1,61 +1,54 @@
 #include <vector>
 #include <QVector>
-#include "Window_MainBoard.h"
 #include "ui_Window_MainBoard.h"
+#include "Window_MainBoard.h"
 #include "Player.h"
 #include "Dialog_EndGame.h"
 #include "Dialog_UserAction.h"
 #include "Dialog_AddCity.h"
 #include "City.h"
 
-Window_MainBoard::Window_MainBoard(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::Window_MainBoard)
-{
+static std::vector<Player> pMageKnightPlayers;
+
+Window_MainBoard::Window_MainBoard(QWidget *parent) : QMainWindow(parent), ui(new Ui::Window_MainBoard) {
     ui->setupUi(this);
 
     playerTableSetupClean();
     cityTableSetupClean();
     greatestTitleTableSetupClean();
     graphWidgetSetupClean();
-
-    connect(mpTimer, SIGNAL(gameTimerUpdate(unsigned int, unsigned int, unsigned int)), this, SLOT(timerUpdate(unsigned int, unsigned int, unsigned int)));
-    mpTimer->startTimer();
 }
 
-Window_MainBoard::~Window_MainBoard()
-{
+Window_MainBoard::~Window_MainBoard() {
     delete ui;
 }
 
-void Window_MainBoard::allocatePlayers(unsigned int playerCount)
-{
-    MageKnight_Player.resize(playerCount);
-    PlayerRank.resize(playerCount);
-    ui->tableWidget_players->setColumnCount(int(playerCount)+1); // +1 for the header column in the left side (column 0)
+void Window_MainBoard::setPlayerGraphics(const std::vector<Player>& playerList) {
+    int playerCount = playerList.size();
 
-    // Find playCount different distinct colors using the hsv scale
-    int hStep = 360/(playerCount+1); // Linearly distribute the h values from 0 to 360 degrees (h = 360 and h = 0 gives the same result)
+    ui->tableWidget_players->setColumnCount(playerCount+1); // +1 for the header column in the left side (column 0)
 
-    for (unsigned int i = 0; i < playerCount; ++i)
-    {
-        int h = hStep * int(i);       // Hue defines the color-space which is mapped across a circle
-        int s = 90 + (rand() % 110);  // "saturation" represent the perceived saturation of the color (0 is all white, while 255 is max saturation)
-        int v = 100 + (rand() % 100); // "value" represents the perceived brightness (0 is all black, while 255 is all dark)
-        MageKnight_Player.at(i).mPlayerColor = QColor::fromHsv(h, s, v, 255);
+    int graphCount = ui->customPlot->graphCount();
+
+    // With the given number of players, check that the number of graphs matches
+    if (graphCount < playerCount) {
+        // Add (playerCount - graphCount) graphs
+        for(int i = 0; i < (playerCount - graphCount); i++) {
+            ui->customPlot->addGraph();
+        }
     }
-}
+    else if (graphCount > playerCount) {
+        //Remove the (graphCount - playerCount) last graphs
+        for(int i = 0; i < (graphCount - playerCount); i++) {
+            ui->customPlot->removeGraph(graphCount-i-1);
+        }
+    }
 
-void Window_MainBoard::addPlayer(unsigned int ID, QString playerName, QString playerCharacter)
-{
-    MageKnight_Player.at(ID-1).setName(playerName);
-    MageKnight_Player.at(ID-1).setCharacter(playerCharacter);
-
-    updatePlayerStats(); // Show the new player stats in the table
-
-    ui->customPlot->addGraph();
-    ui->customPlot->graph(int(ID)-1)->setPen(QPen(MageKnight_Player.at(ID-1).mPlayerColor));
-    ui->customPlot->graph(int(ID)-1)->setName(MageKnight_Player.at(ID-1).mName);
+    for(int i = 0; i < playerCount; i++) {
+        // Redefine graph colors and legends to match the player list
+        ui->customPlot->graph(i)->setPen(QPen(playerList.at(i).mPlayerColor));
+        ui->customPlot->graph(i)->setName(playerList.at(i).mName);
+    }
 }
 
 void Window_MainBoard::allocateCities(unsigned int cityCount)
@@ -86,79 +79,69 @@ void Window_MainBoard::setDayCount(unsigned int dayCount)
     mDayCount = dayCount;
 }
 
-void Window_MainBoard::updatePlayerStats(void)
-{
+void Window_MainBoard::updatePlayerStats(const std::vector<Player>& playerList) {
     std::vector <QString> playerStats;
-    playerStats.resize(NUMBER_OF_TABLE_ITEMS);
     QColor playerColor;
 
-    unsigned int playerIndex = 0;
+    playerStats.resize(NUMBER_OF_TABLE_ITEMS);
 
-    updatePlayerRanks(); // This updates the rank for ordering the players w.r.t. their scores
-
-    for (unsigned int i = 0; i < MageKnight_Player.size(); ++i)
-    {    
-        playerIndex = PlayerRank.at(i);
-
-        playerStats.at(TABLE_ITEM_NAME_ID)         = MageKnight_Player.at(playerIndex).mName + " (" + QString::number(playerIndex+1) + ")";
-        playerStats.at(TABLE_ITEM_CHARACTER)       = MageKnight_Player.at(playerIndex).mCharacter;
-        playerStats.at(TABLE_ITEM_SCORE)           = QString::number(MageKnight_Player.at(playerIndex).mScore);
-        playerStats.at(TABLE_ITEM_LEVEL)           = QString::number(MageKnight_Player.at(playerIndex).mLevel);
-        playerStats.at(TABLE_ITEM_FAME)            = QString::number(MageKnight_Player.at(playerIndex).mFame);
-        playerStats.at(TABLE_ITEM_REPUTATION)      = QString::number(MageKnight_Player.at(playerIndex).mReputation);
-        playerStats.at(TABLE_ITEM_AAC)             = QString::number(MageKnight_Player.at(playerIndex).mAActionCards);
-        playerStats.at(TABLE_ITEM_SPELLS)          = QString::number(MageKnight_Player.at(playerIndex).mSpellCards);
-        playerStats.at(TABLE_ITEM_ARTIFACTS)       = QString::number(MageKnight_Player.at(playerIndex).mArtifacts);
-        playerStats.at(TABLE_ITEM_CRYSTALS)        = QString::number(MageKnight_Player.at(playerIndex).mCrystals);
-        playerStats.at(TABLE_ITEM_MONSTERS)        = QString::number(MageKnight_Player.at(playerIndex).mMonsters.size());
-        playerStats.at(TABLE_ITEM_WOUNDS)          = QString::number(MageKnight_Player.at(playerIndex).mWounds);
-        playerStats.at(TABLE_ITEM_KNOWLEDGE)       = QString::number(MageKnight_Player.at(playerIndex).mKnowledgePoints);
-        playerStats.at(TABLE_ITEM_LOOT)            = QString::number(MageKnight_Player.at(playerIndex).mLootPoints);
-        playerStats.at(TABLE_ITEM_LEADER)          = QString::number(MageKnight_Player.at(playerIndex).mLeaderPoints);
-        playerStats.at(TABLE_ITEM_CONQUERER)       = QString::number(MageKnight_Player.at(playerIndex).mConquerorPoints);
-        playerStats.at(TABLE_ITEM_CITY_CONQUERER)  = QString::number(MageKnight_Player.at(playerIndex).mCityPoints);
-        playerStats.at(TABLE_ITEM_ADVENTURER)      = QString::number(MageKnight_Player.at(playerIndex).mAdventurerPoints);
-        playerStats.at(TABLE_ITEM_BEATING)         = QString::number(MageKnight_Player.at(playerIndex).mBeatingPoints);
+    for (unsigned int i = 0; i < playerList.size(); ++i) {
+        playerStats.at(TABLE_ITEM_NAME_ID)         = playerList.at(i).mName + " (" + QString::number(i+1) + ")";
+        playerStats.at(TABLE_ITEM_CHARACTER)       = playerList.at(i).mCharacter;
+        playerStats.at(TABLE_ITEM_SCORE)           = QString::number(playerList.at(i).mScore);
+        playerStats.at(TABLE_ITEM_LEVEL)           = QString::number(playerList.at(i).mLevel);
+        playerStats.at(TABLE_ITEM_FAME)            = QString::number(playerList.at(i).mFame);
+        playerStats.at(TABLE_ITEM_REPUTATION)      = QString::number(playerList.at(i).mReputation);
+        playerStats.at(TABLE_ITEM_AAC)             = QString::number(playerList.at(i).mAActionCards);
+        playerStats.at(TABLE_ITEM_SPELLS)          = QString::number(playerList.at(i).mSpellCards);
+        playerStats.at(TABLE_ITEM_ARTIFACTS)       = QString::number(playerList.at(i).mArtifacts);
+        playerStats.at(TABLE_ITEM_CRYSTALS)        = QString::number(playerList.at(i).mCrystals);
+        playerStats.at(TABLE_ITEM_MONSTERS)        = QString::number(playerList.at(i).mMonsters.size());
+        playerStats.at(TABLE_ITEM_WOUNDS)          = QString::number(playerList.at(i).mWounds);
+        playerStats.at(TABLE_ITEM_KNOWLEDGE)       = QString::number(playerList.at(i).mBasicScoreValues.at(TITLE_GREATEST_KNOWLEDGE));
+        playerStats.at(TABLE_ITEM_LOOT)            = QString::number(playerList.at(i).mBasicScoreValues.at(TITLE_GREATEST_LOOT));
+        playerStats.at(TABLE_ITEM_LEADER)          = QString::number(playerList.at(i).mBasicScoreValues.at(TITLE_GREATEST_LEADER));
+        playerStats.at(TABLE_ITEM_CONQUERER)       = QString::number(playerList.at(i).mBasicScoreValues.at(TITLE_GREATEST_CONQUEROR));
+        playerStats.at(TABLE_ITEM_CITY_CONQUERER)  = QString::number(playerList.at(i).mBasicScoreValues.at(TITLE_GREATEST_CITY_CONQUEROR));
+        playerStats.at(TABLE_ITEM_ADVENTURER)      = QString::number(playerList.at(i).mBasicScoreValues.at(TITLE_GREATEST_ADVENTURER));
+        playerStats.at(TABLE_ITEM_BEATING)         = QString::number(playerList.at(i).mBasicScoreValues.at(TITLE_GREATEST_BEATING));
 
         // Display the values in the table using the corresponding playerColor
-        playerColor = MageKnight_Player.at(playerIndex).mPlayerColor;
-        int R = playerColor.red();
-        int G = playerColor.green();
-        int B = playerColor.blue();
+        playerColor = playerList.at(i).mPlayerColor;
 
-        for (unsigned int j = 0; j < NUMBER_OF_TABLE_ITEMS; ++j)
-        {
-            ui->tableWidget_players->setItem(int(j), int(i)+1, new QTableWidgetItem(playerStats.at(j)));
+        for (unsigned int j = 0; j < NUMBER_OF_TABLE_ITEMS; ++j) {
+            ui->tableWidget_players->setItem(int(j), playerList.at(i).mRank, new QTableWidgetItem(playerStats.at(j)));
 
+            // This remaining part is used to highlight achieved Greatest titles in the list
             greatest_title_t titleState = GREATEST_TITLE_NONE;
 
             switch (j) {
             case (TABLE_ITEM_KNOWLEDGE):
-                titleState = MageKnight_Player.at(playerIndex).mGreatestTitleStats.at(TABLE_ITEM_GREATEST_KNOWLEDGE);
+                titleState = playerList.at(i).mGreatestTitleStats.at(TITLE_GREATEST_KNOWLEDGE);
                 break;
 
             case (TABLE_ITEM_LOOT):
-                titleState = MageKnight_Player.at(playerIndex).mGreatestTitleStats.at(TABLE_ITEM_GREATEST_LOOT);
+                titleState = playerList.at(i).mGreatestTitleStats.at(TITLE_GREATEST_LOOT);
                 break;
 
             case (TABLE_ITEM_LEADER):
-                titleState = MageKnight_Player.at(playerIndex).mGreatestTitleStats.at(TABLE_ITEM_GREATEST_LEADER);
+                titleState = playerList.at(i).mGreatestTitleStats.at(TITLE_GREATEST_LEADER);
                 break;
 
             case (TABLE_ITEM_CONQUERER):
-                titleState = MageKnight_Player.at(playerIndex).mGreatestTitleStats.at(TABLE_ITEM_GREATEST_CONQUEROR);
+                titleState = playerList.at(i).mGreatestTitleStats.at(TITLE_GREATEST_CONQUEROR);
                 break;
 
             case (TABLE_ITEM_CITY_CONQUERER):
-                titleState = MageKnight_Player.at(playerIndex).mGreatestTitleStats.at(TABLE_ITEM_GREATEST_CITY_CONQUEROR);
+                titleState = playerList.at(i).mGreatestTitleStats.at(TITLE_GREATEST_CITY_CONQUEROR);
                 break;
 
             case (TABLE_ITEM_ADVENTURER):
-                titleState = MageKnight_Player.at(playerIndex).mGreatestTitleStats.at(TABLE_ITEM_GREATEST_ADVENTURER);
+                titleState = playerList.at(i).mGreatestTitleStats.at(TITLE_GREATEST_ADVENTURER);
                 break;
 
             case (TABLE_ITEM_BEATING):
-                titleState = MageKnight_Player.at(playerIndex).mGreatestTitleStats.at(TABLE_ITEM_GREATEST_BEATING);
+                titleState = playerList.at(i).mGreatestTitleStats.at(TITLE_GREATEST_BEATING);
                 break;
 
             default:
@@ -166,21 +149,18 @@ void Window_MainBoard::updatePlayerStats(void)
             }
 
             if ((titleState == GREATEST_TITLE_WIN_TIED) || (titleState == GREATEST_TITLE_WIN))
-            {
-                // Show stat with highlighted (non-transparent) background, if leader position is recognized
-                ui->tableWidget_players->item(int(j), int(i)+1)->setBackground(QBrush(QColor(R, G, B, 255)));
-            }
+                playerColor.setAlpha(230); // Set the intensity high to highlight a won or tied greatest title
             else
-            {
-                ui->tableWidget_players->item(int(j), int(i)+1)->setBackground(QBrush(QColor(R, G, B, 128)));
-            }
+                playerColor.setAlpha(112); // Set the intensity low as default
+
+            ui->tableWidget_players->item(int(j), playerList.at(i).mRank)->setBackground(QBrush(playerColor));
         }
     }
 
     ui->tableWidget_players->resizeColumnsToContents();
 }
 
-void Window_MainBoard::updateCityStats(Action action)
+/*void Window_MainBoard::updateCityStats(Action action)
 {
     if (action.mMainActionID == ACTION_ID_CITY)
     {
@@ -204,41 +184,7 @@ void Window_MainBoard::updateCityStats(Action action)
 
         updateCityList();
     }
-}
-
-void Window_MainBoard::updatePlayerRanks(void)
-{
-    unsigned int maxValue = 0;
-    unsigned int maxIndex = 0;
-
-    // Create a list of the player scores
-    std::vector<unsigned int> playerScores(PlayerRank.size());
-
-    // Assign the player scores to the list
-    for (unsigned int i = 0; i < PlayerRank.size(); ++i)
-    {
-        playerScores.at(i) = MageKnight_Player.at(i).mScore + 1; // Plus one is a small trick to ignore values set to 0 in the sorting algorithm
-    }
-
-    // Start sorting w.r.t. the score values in the list
-    for (unsigned int i = 0; i < PlayerRank.size(); ++i)
-    {
-        maxIndex = 0;
-        maxValue = playerScores.at(maxIndex);
-
-        for (unsigned int j = 0; j < PlayerRank.size(); ++j)
-        {
-            if (playerScores.at(j) > maxValue)
-            {
-                maxIndex = j;
-                maxValue = playerScores.at(maxIndex);
-            }
-        }
-
-        playerScores.at(maxIndex) = 0; // Clear the value (set to zero should result in ignoring it from here)
-        PlayerRank.at(i) = maxIndex;
-    }
-}
+}*/
 
 void Window_MainBoard::updateCityList(void)
 {
@@ -263,76 +209,8 @@ void Window_MainBoard::updateCityList(void)
     ui->tableWidget_cities->resizeColumnsToContents();
 }
 
-void Window_MainBoard::findGreatestTitles(void)
-{
-    for (unsigned int i = 0; i < NUMBER_OF_GREATEST_TITLES; ++i)
-    {
-        unsigned int maxScore = 0;
-        unsigned int playerScore = 0;
-        bool tied = false;
-        bool firstNameWritten = false;
 
-        // Search through all players and determine the maxScore and if it is tied between two or more players
-        for (unsigned int j = 0; j < MageKnight_Player.size(); ++j)
-        {
-            playerScore = MageKnight_Player.at(j).mGreatestScoreValues.at(i);
-            if (playerScore > maxScore)
-            {
-                maxScore = playerScore;
-                tied = false;
-            }
-            else if (playerScore == maxScore)
-            {
-                tied = true;
-            }
-        }
-
-        // Use the found maxscore to set the city relation status for all players
-        for (unsigned int j = 0; j < MageKnight_Player.size(); ++j)
-        {
-            playerScore = MageKnight_Player.at(j).mGreatestScoreValues.at(i);
-
-            if (playerScore < maxScore || maxScore == 0)
-            {
-                MageKnight_Player.at(j).setGreatestTitleState(greatest_title_items_t(i), GREATEST_TITLE_NONE);
-
-                // There can be no leader if the found max score is 0.
-                if (maxScore == 0)
-                {
-                    greatestTitlesPlayers.at(i) = "Volkare Biddybob";
-                }
-            }
-            else if (playerScore == maxScore)
-            {
-                if (tied)
-                {
-                    MageKnight_Player.at(j).setGreatestTitleState(greatest_title_items_t(i), GREATEST_TITLE_WIN_TIED);
-
-                    if (firstNameWritten)
-                    {
-                        greatestTitlesPlayers.at(i) += ", " + MageKnight_Player.at(j).mName;
-                    }
-                }
-
-                else
-                {
-                    MageKnight_Player.at(j).setGreatestTitleState(greatest_title_items_t(i), GREATEST_TITLE_WIN);
-                }
-
-                if (firstNameWritten == false)
-                {
-                    greatestTitlesPlayers.at(i) = MageKnight_Player.at(j).mName;
-                    firstNameWritten = true;
-                }
-
-            }
-
-            MageKnight_Player.at(j).updateScore();
-        }
-    }
-}
-
-void Window_MainBoard::updateGreatestTitleList(void)
+/*void Window_MainBoard::updateGreatestTitleList(void)
 {
     for (unsigned int i = 0; i < NUMBER_OF_GREATEST_TITLES; ++i)
     {
@@ -340,9 +218,9 @@ void Window_MainBoard::updateGreatestTitleList(void)
     }
 
     ui->tableWidget_greatestTitles->resizeColumnsToContents();
-}
+}*/
 
-void Window_MainBoard::findCityLeader(unsigned int cityID)
+/*void Window_MainBoard::findCityLeader(unsigned int cityID)
 {
     if (MageKnight_Cities.at(cityID).mConquered)
     {
@@ -423,11 +301,9 @@ void Window_MainBoard::findCityLeader(unsigned int cityID)
 
         MageKnight_Cities.at(cityID).mCityOwner = cityOwner;
     }
-}
+}*/
 
-
-void Window_MainBoard::playerTableSetupClean(void)
-{
+void Window_MainBoard::playerTableSetupClean(void) {
     std::vector <QString> playerTableHeader;
     playerTableHeader.resize(NUMBER_OF_TABLE_ITEMS);
 
@@ -454,8 +330,7 @@ void Window_MainBoard::playerTableSetupClean(void)
     ui->tableWidget_players->setRowCount(NUMBER_OF_TABLE_ITEMS);
     ui->tableWidget_players->setColumnCount(1);
 
-    for (unsigned int i=0; i<NUMBER_OF_TABLE_ITEMS; ++i)
-    {
+    for (unsigned int i=0; i<NUMBER_OF_TABLE_ITEMS; ++i) {
         ui->tableWidget_players->setItem(int(i), 0, new QTableWidgetItem(playerTableHeader.at(i)));
         ui->tableWidget_players->item(int(i),0)->setFont(QFont("MS Shell Dlg 2", 10, QFont::Bold));
     }
@@ -468,8 +343,7 @@ void Window_MainBoard::playerTableSetupClean(void)
     ui->tableWidget_players->resizeColumnsToContents();
 }
 
-void Window_MainBoard::cityTableSetupClean(void)
-{
+void Window_MainBoard::cityTableSetupClean(void) {
     QStringList cityTableHeader;
 
     cityTableHeader
@@ -501,22 +375,22 @@ void Window_MainBoard::greatestTitleTableSetupClean(void)
     ui->tableWidget_greatestTitles->setRowCount(NUMBER_OF_GREATEST_TITLES);
     ui->tableWidget_greatestTitles->setColumnCount(2);
 
-    greatestTitlesPlayers.resize(NUMBER_OF_GREATEST_TITLES);
+    //greatestTitlesPlayers.resize(NUMBER_OF_GREATEST_TITLES);
     greatestTitles.resize(NUMBER_OF_GREATEST_TITLES);
 
     // Specify the titles to be written in the table view
-    greatestTitles.at(TABLE_ITEM_GREATEST_KNOWLEDGE)      = "The Greatest Knowledge";
-    greatestTitles.at(TABLE_ITEM_GREATEST_LOOT)           = "The Greatest Loot";
-    greatestTitles.at(TABLE_ITEM_GREATEST_LEADER)         = "The Greatest Leader";
-    greatestTitles.at(TABLE_ITEM_GREATEST_CONQUEROR)      = "The Greatest Conqueror";
-    greatestTitles.at(TABLE_ITEM_GREATEST_CITY_CONQUEROR) = "The Greatest City Conqueror";
-    greatestTitles.at(TABLE_ITEM_GREATEST_ADVENTURER)     = "The Greatest Adventurer";
-    greatestTitles.at(TABLE_ITEM_GREATEST_BEATING)        = "The Greatest Beating";
+    greatestTitles.at(TITLE_GREATEST_KNOWLEDGE)      = "The Greatest Knowledge";
+    greatestTitles.at(TITLE_GREATEST_LOOT)           = "The Greatest Loot";
+    greatestTitles.at(TITLE_GREATEST_LEADER)         = "The Greatest Leader";
+    greatestTitles.at(TITLE_GREATEST_CONQUEROR)      = "The Greatest Conqueror";
+    greatestTitles.at(TITLE_GREATEST_CITY_CONQUEROR) = "The Greatest City Conqueror";
+    greatestTitles.at(TITLE_GREATEST_ADVENTURER)     = "The Greatest Adventurer";
+    greatestTitles.at(TITLE_GREATEST_BEATING)        = "The Greatest Beating";
 
     // Write the specified title strings in the first column
     for (unsigned int i = 0; i < NUMBER_OF_GREATEST_TITLES; ++i)
     {
-        greatestTitlesPlayers.at(i) = "Volkare Biddybob";
+        //greatestTitlesPlayers.at(i) = "Volkare Biddybob";
         ui->tableWidget_greatestTitles->setItem(int(i), 0, new QTableWidgetItem(greatestTitles.at(i)));
     }
 
@@ -526,11 +400,10 @@ void Window_MainBoard::greatestTitleTableSetupClean(void)
     ui->tableWidget_greatestTitles->setShowGrid(true);
     ui->tableWidget_greatestTitles->setFocusPolicy(Qt::NoFocus); // Avoid selecting and highlighting of cells
 
-    updateGreatestTitleList();
+    //updateGreatestTitleList();
 }
 
-void Window_MainBoard::graphWidgetSetupClean(void)
-{
+void Window_MainBoard::graphWidgetSetupClean(void) {
     QColor plotAxisColor = QColor(190, 157, 56, 192);
 
     ui->customPlot->setBackground(QBrush(QColor(0, 0, 0, 192)));
@@ -556,51 +429,60 @@ void Window_MainBoard::graphWidgetSetupClean(void)
     ui->customPlot->xAxis->setTicker(dateTicker);
 }
 
-void Window_MainBoard::updateGraphPlots(void)
-{
-    unsigned int Nplayers = MageKnight_Player.size();
+void Window_MainBoard::on_newPlayerData(const std::vector<Player>& playerList, const GameTimer& gameTimer) {
+    QString buttonText = "Play/Pause Game\n Game Time: ";
 
-    for (unsigned int i = 0; i < Nplayers; ++i)
-    {
-        ui->customPlot->graph(int(i))->setData(MageKnight_Player.at(i).mTimeData, MageKnight_Player.at(i).mPointData);
+    int Nplayers = playerList.size();
+
+    unsigned int hours   = gameTimer.mTicks/3600;
+    unsigned int minutes = (gameTimer.mTicks - hours*3600)/60;
+    unsigned int seconds = (gameTimer.mTicks - hours*3600 - minutes*60);
+
+    if (hours < 10) buttonText += "0";
+    buttonText += QString::number(hours) + ":";
+    if (minutes < 10) buttonText += "0";
+    buttonText += QString::number(minutes) + ":";
+    if (seconds < 10) buttonText += "0";
+    buttonText += QString::number(seconds);
+
+    ui->pushButton_playPauseGame->setText(buttonText);
+
+    // Check if the time-axis of the graph needs to be rescaled
+    if (gameTimer.mTicks > mGraphTimerMaxRange) {
+        mGraphTimerMaxRange = mGraphTimerMaxRange * 1.5; // Extend the time range with 50%
+        ui->customPlot->xAxis->setRange(0, mGraphTimerMaxRange);
+    }
+
+    // Safety mechanism to verify that no users have been added or removed
+    // without resetting the graphcount and playerTable column count.
+    if ((Nplayers != ui->customPlot->graphCount()) || ((Nplayers+1) != ui->tableWidget_players->columnCount())) {
+        setPlayerGraphics(playerList);
+    }
+
+    // Update the playerTable data display
+    updatePlayerStats(playerList);
+
+    // Plot the player data on the customplot graphs.
+    for (int i = 0; i < Nplayers; ++i) {
+        ui->customPlot->graph(int(i))->setData(playerList.at(i).mTimeData, playerList.at(i).mPointData);
     }
 
     ui->customPlot->replot();
 }
 
-void Window_MainBoard::timerUpdate(unsigned int h, unsigned int m, unsigned int s)
-{
-    QString buttonText = "Play/Pause Game\n Game Time: ";
+void Window_MainBoard::on_newPlayerAndCityData(const std::vector<Player>& playerList, const std::vector<City>& cityList) {
+    // Forward the event to the Action Dialog
+    emit newPlayerAndCityGameEngineData(playerList, cityList);
+}
 
-    if (h < 10) buttonText += "0";
-    buttonText += QString::number(h) + ":";
-    if (m < 10) buttonText += "0";
-    buttonText += QString::number(m) + ":";
-    if (s < 10) buttonText += "0";
-    buttonText += QString::number(s);
+void Window_MainBoard::on_newTestUserAction(Action testAction) {
+    // Forward the event from Action Dialog to the GameEngine
+    emit newTestUserAction(testAction);
+}
 
-    ui->pushButton_playPauseGame->setText(buttonText);
-
-
-
-    // Update all player time time data to update the graph plots
-    unsigned long nTicks = s + 60*m + 3600*h;
-
-    if (nTicks > mGraphTimerMaxRange)
-    {
-        mGraphTimerMaxRange = mGraphTimerMaxRange * 2;
-        ui->customPlot->xAxis->setRange(0, mGraphTimerMaxRange);
-    }
-
-    unsigned int Nplayers = MageKnight_Player.size();
-
-    for (unsigned int i = 0; i < Nplayers; ++i)
-    {
-        int endPoint = MageKnight_Player.at(i).mTimeData.size();
-        MageKnight_Player.at(i).mTimeData[endPoint-1] = nTicks;
-    }
-
-    updateGraphPlots();
+void Window_MainBoard::on_newTempPlayerData(const Player& player, const Player& playerTemp) {
+    // Forward the event from the Game Engine to the Action Dialog
+    emit newTempPlayerData(player, playerTemp);
 }
 
 void Window_MainBoard::on_pushButton_endGame_clicked()
@@ -610,68 +492,22 @@ void Window_MainBoard::on_pushButton_endGame_clicked()
     if(sureDialog.exec() == QDialog::Accepted)
     {
         QCoreApplication::exit(0);
-        //this->close();
     }
 }
 
-void Window_MainBoard::on_pushButton_enterUserAction_clicked()
-{
+void Window_MainBoard::on_pushButton_enterUserAction_clicked() {
     Dialog_UserAction actionDialog(this);
+    //actionDialog.show();
 
-    unsigned int playerCount = MageKnight_Player.size();
-    unsigned int cityCount = MageKnight_Cities.size();
+    connect(this,          SIGNAL(newPlayerAndCityGameEngineData(const std::vector<Player>&, const std::vector<City>&)), &actionDialog, SLOT(on_newPlayerAndCityGameEngineData(const std::vector<Player>&, const std::vector<City>&)));
+    connect(this,          SIGNAL(newTempPlayerData(const Player&, const Player&)),                                      &actionDialog, SLOT(on_newTempPlayerData(const Player&, const Player&)));
+    connect(&actionDialog, SIGNAL(newTestUserAction(Action)),                                                            this,          SLOT(on_newTestUserAction(Action)));
 
-    actionDialog.allocatePlayers(playerCount);
-    actionDialog.allocateCities(cityCount);
-
-    for (unsigned int i = 0; i < playerCount; ++i)
-    {
-        actionDialog.addPlayer(i+1, MageKnight_Player.at(i));
-    }
-
-    for (unsigned int i = 0; i < cityCount; ++i)
-    {
-        actionDialog.addCity(i+1, MageKnight_Cities.at(i));
-    }
+    emit userActionDialogOpened(); // Request for player and city data from gameEngine
 
     if (actionDialog.exec() == QDialog::Accepted)
     {
-        Action PlayerAction = actionDialog.mplayerAction;  // Receive a copy of the action from the dialog
-        PlayerAction.mTime = mpTimer->mTotalTimeInSeconds; // Add a time-stamp to the action
-
-        MageKnight_Player.at(PlayerAction.mPlayerID-1).addAction(PlayerAction); // Add the action to the given player
-        updateCityStats(PlayerAction);
-        findGreatestTitles();
-
-        // Loop through all players and check if their scores have changed
-        for (unsigned int i = 0; i < MageKnight_Player.size(); ++i)
-        {
-            int playerScore = MageKnight_Player.at(i).mScore;
-            int NdataPoints = MageKnight_Player.at(i).mPointData.size();
-
-            if (playerScore != int(MageKnight_Player.at(i).mPointData[NdataPoints-1]))
-            {
-                MageKnight_Player.at(i).mPointData.resize(NdataPoints+2);
-                MageKnight_Player.at(i).mTimeData.resize(NdataPoints+2);
-
-                MageKnight_Player.at(i).mPointData[NdataPoints] = playerScore;
-                MageKnight_Player.at(i).mPointData[NdataPoints+1] = playerScore;
-
-                MageKnight_Player.at(i).mTimeData[NdataPoints] = mpTimer->mTotalTimeInSeconds;
-                MageKnight_Player.at(i).mTimeData[NdataPoints+1] = mpTimer->mTotalTimeInSeconds;
-            }
-
-            if (playerScore > int(mGraphPointMaxRange))
-            {
-                // If the current player score exeeds the current range on the graph, then reset the range.
-                // The new max is found as the next nearest 25 (e.g. 215 --> newYMax = 225)
-                mGraphPointMaxRange = 25 * unsigned(ceil(playerScore/25.0));
-                ui->customPlot->yAxis->setRange(-1,mGraphPointMaxRange);
-            }
-        }
-
-        updateGreatestTitleList();
-        updatePlayerStats(); // Update the player list view on the Window_MainBoard screen
+        emit newUserAction(actionDialog.mplayerAction);
     }
 }
 

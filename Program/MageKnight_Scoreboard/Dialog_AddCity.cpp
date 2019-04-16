@@ -1,9 +1,7 @@
 #include "Dialog_AddCity.h"
 #include "ui_Dialog_AddCity.h"
 
-Dialog_AddCity::Dialog_AddCity(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::Dialog_AddCity)
+Dialog_AddCity::Dialog_AddCity(QWidget *parent) : QDialog(parent), ui(new Ui::Dialog_AddCity)
 {
     ui->setupUi(this);
     ui_dialogSetupClean();

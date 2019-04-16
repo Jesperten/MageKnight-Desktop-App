@@ -37,7 +37,7 @@
    <widget class="QWidget" name="page_start">
     <property name="styleSheet">
      <string notr="true">QWidget#page_start{ 
-border-image: url(:/images/images/Background_Start.jpg);
+border-image: url(:/images/Image_Background_Start);
 }
 </string>
     </property>
@@ -136,7 +136,7 @@ border-image: url(:/images/images/Background_Start.jpg);
    <widget class="QWidget" name="page_newGame">
     <property name="styleSheet">
      <string notr="true">QWidget#page_newGame{ 
-border-image: url(:/images/images/Background_Start.jpg);
+border-image:  url(:/images/Image_Background_Start);
 }
 </string>
     </property>

@@ -1,34 +1,29 @@
 <RCC>
     <qresource prefix="/sounds">
-        <file>sounds/sound1.wav</file>
-        <file>sounds/sound2.wav</file>
-        <file>sounds/sound3.wav</file>
-        <file>sounds/sound4.wav</file>
-        <file>sounds/sound5.wav</file>
-        <file>sounds/sound6.wav</file>
-        <file>sounds/sound7.wav</file>
-        <file>sounds/sound8.wav</file>
+        <file alias="Sound1">Misc/Sounds/sound1.wav</file>
+        <file alias="Sound2">Misc/Sounds/sound2.wav</file>
+        <file alias="Sound3">Misc/Sounds/sound3.wav</file>
+        <file alias="Sound4">Misc/Sounds/sound4.wav</file>
+        <file alias="Sound5">Misc/Sounds/sound5.wav</file>
+        <file alias="Sound6">Misc/Sounds/sound6.wav</file>
+        <file alias="Sound7">Misc/Sounds/sound7.wav</file>
+        <file alias="Sound8">Misc/Sounds/sound8.wav</file>
     </qresource>
     <qresource prefix="/images">
-        <file>images/Background_Action.jpg</file>
-        <file>images/Background_City.jpg</file>
-        <file>images/Background_Main.jpg</file>
-        <file>images/Background_Start.jpg</file>
-        <file>images/CharacterArythea.jpg</file>
-        <file>images/CharacterGoldyx.jpg</file>
-        <file>images/CharacterKrang.jpg</file>
-        <file>images/CharacterNorowas.jpg</file>
-        <file>images/CharacterTovak.jpg</file>
-        <file>images/Day Movement.jpg</file>
-        <file>images/GeneralVolkare.jpg</file>
-        <file>images/MageKnight_BIG.jpg</file>
-        <file>images/MageKnightLogo.jpg</file>
-        <file>images/maxresdefault.jpg</file>
-        <file>images/PointBoard.JPG</file>
-        <file>images/PushButton.png</file>
-        <file>images/PushButton_disabled.png</file>
-        <file>images/PushButton_pressed.png</file>
-        <file>images/CharacterBraevelar.jpg</file>
-        <file>images/CharacterWolfhawk.jpg</file>
+        <file alias="Image_Background_Action">Misc/Images/Background_Action.jpg</file>
+        <file alias="Image_Background_City">Misc/Images/Background_City.jpg</file>
+        <file alias="Image_Background_Main">Misc/Images/Background_Main.jpg</file>
+        <file alias="Image_Background_Start">Misc/Images/Background_Start.jpg</file>
+        <file alias="Image_Character_Arythea">Misc/Images/CharacterArythea.jpg</file>
+        <file alias="Image_Character_Braevelar">Misc/Images/CharacterBraevelar.jpg</file>
+        <file alias="Image_Character_Goldyx">Misc/Images/CharacterGoldyx.jpg</file>
+        <file alias="Image_Character_Krang">Misc/Images/CharacterKrang.jpg</file>
+        <file alias="Image_Character_Norowas">Misc/Images/CharacterNorowas.jpg</file>
+        <file alias="Image_Character_Tovak">Misc/Images/CharacterTovak.jpg</file>
+        <file alias="Image_Character_Wolfhawk">Misc/Images/CharacterWolfhawk.jpg</file>
+        <file alias="Image_Volkare">Misc/Images/GeneralVolkare.jpg</file>
+        <file alias="Image_PushButton_Normal">Misc/Images/PushButton.png</file>
+        <file alias="Image_PushButton_Disabled">Misc/Images/PushButton_disabled.png</file>
+        <file alias="Image_PushButton_Pressed">Misc/Images/PushButton_pressed.png</file>
     </qresource>
 </RCC>

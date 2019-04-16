@@ -7,32 +7,29 @@
 class GameTimer : public QObject
 {
     Q_OBJECT
-
+    
 public:
     // Constructor
     explicit GameTimer(QObject *parent = nullptr);
-
+    
     // Public methods
     void startTimer();
     void stopTimer();
     bool isTimerActive();
-    void setTimer(unsigned int h, unsigned int m, unsigned int s);
-
+    void setTimer(unsigned int ticks);
+    
     // Public members
-    unsigned int mTotalTimeInSeconds = 0;
+    unsigned long mTicks = 0;
 
 signals:
-    void gameTimerUpdate(unsigned int h, unsigned int m, unsigned int s);
-
+    void gameTimerUpdate();
+    
 private slots:
-    void timeOutSlot();
+    void on_TimeOut();
 
-private:    
+private:
     // Private members
-    unsigned int mSeconds = 0;
-    unsigned int mMinutes = 0;
-    unsigned int mHours = 0;
-    QTimer *mpTimer = new QTimer();
+    QTimer mpTimer;
 };
 
 #endif // GAMETIMER_H

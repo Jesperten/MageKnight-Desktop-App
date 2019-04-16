@@ -39,7 +39,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QDialog#Dialog_UserAction{
-    border-image: url(:/images/images/Background_Action.jpg);
+    border-image: url(:/images/Image_Background_Action);
 }
 
 QTableWidget {
@@ -398,6 +398,9 @@ QTableWidget {
         </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of Advanced Action Cards thrown away during the attack.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="maximum">
+         <number>99</number>
         </property>
        </widget>
       </item>

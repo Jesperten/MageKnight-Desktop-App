@@ -37,7 +37,8 @@ SOURCES +=\
     Dialog_UserAction.cpp \
     Window_MainBoard.cpp \
     GameEngine.cpp \
-    Dialog_StartMenu.cpp
+    Dialog_StartMenu.cpp \
+    GameScoreSystem.cpp
 
 HEADERS  += \
     Action.h \
@@ -53,7 +54,8 @@ HEADERS  += \
     Window_MainBoard.h \
     GameEngine.h \
     CharacterDescriptionTexts.h \
-    Dialog_StartMenu.h
+    Dialog_StartMenu.h \
+    GameScoreSystem.h
 
 FORMS    += \
     Dialog_AddCity.ui \

@@ -31,7 +31,7 @@
    </property>
    <property name="styleSheet">
     <string notr="true">QWidget#centralwidget{
-    border-image: url(:/images/images/Background_Main.jpg);
+    border-image: url(:/images/Image_Background_Main);
 }
 
 QTableWidget{
@@ -47,7 +47,7 @@ QHeaderView{
 }
 
 QPushButton{
-border-image: url(:/images/images/PushButton.png) 0 0 0 0 stretch stretch;
+border-image:     url(:/images/Image_PushButton_Normal) 0 0 0 0 stretch stretch;
 font: 75 italic 14pt &quot;Cambria&quot;;
 color: rgb(72, 52, 24);
 }</string>

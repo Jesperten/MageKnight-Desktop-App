@@ -1,38 +1,33 @@
 #include <QFont>
 #include <QtWidgets>
-#include <QString>
-#include <QSoundEffect>
-#include "Dialog_UserAction.h"
-#include "ui_Dialog_UserAction.h"
 #include "Action.h"
-#include "Player.h"
-#include "City.h"
+#include "ui_Dialog_UserAction.h"
+#include "Dialog_UserAction.h"
 
-static std::vector<QSoundEffect> mSoundEffects(8);
+/** *****************
+  * PUBLIC METHODS *
+  *******************/
 
-Dialog_UserAction::Dialog_UserAction(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::Dialog_UserAction)
+Dialog_UserAction::Dialog_UserAction(QWidget *parent) : QDialog(parent), ui(new Ui::Dialog_UserAction)
 {
-    playerList.resize(1);
-    cityList.resize(1);
+    ui->setupUi(this);
 
     // Reseed the random generator with the current time as parameter.
     // This is to ensure a more true random nature
     srand(unsigned(time(nullptr)));
 
-    mSoundEffects.at(0).setSource(QUrl("qrc:/sounds/sounds/sound1.wav"));
-    mSoundEffects.at(1).setSource(QUrl("qrc:/sounds/sounds/sound2.wav"));
-    mSoundEffects.at(2).setSource(QUrl("qrc:/sounds/sounds/sound3.wav"));
-    mSoundEffects.at(3).setSource(QUrl("qrc:/sounds/sounds/sound4.wav"));
-    mSoundEffects.at(4).setSource(QUrl("qrc:/sounds/sounds/sound5.wav"));
-    mSoundEffects.at(5).setSource(QUrl("qrc:/sounds/sounds/sound6.wav"));
-    mSoundEffects.at(6).setSource(QUrl("qrc:/sounds/sounds/sound7.wav"));
-    mSoundEffects.at(7).setSource(QUrl("qrc:/sounds/sounds/sound8.wav"));
+    mSoundEffects[0].setSource(QUrl("qrc:/sounds/Sound1"));
+    mSoundEffects[1].setSource(QUrl("qrc:/sounds/Sound2"));
+    mSoundEffects[2].setSource(QUrl("qrc:/sounds/Sound3"));
+    mSoundEffects[3].setSource(QUrl("qrc:/sounds/Sound4"));
+    mSoundEffects[4].setSource(QUrl("qrc:/sounds/Sound5"));
+    mSoundEffects[5].setSource(QUrl("qrc:/sounds/Sound6"));
+    mSoundEffects[6].setSource(QUrl("qrc:/sounds/Sound7"));
+    mSoundEffects[7].setSource(QUrl("qrc:/sounds/Sound8"));
 
-    ui->setupUi(this);
     defineStringLists(); // Declares the string lists used in the different comboboxes
-    ui_userActionSetupClean();
+
+    //ui_userActionSetupClean();
 }
 
 Dialog_UserAction::~Dialog_UserAction()
@@ -40,36 +35,10 @@ Dialog_UserAction::~Dialog_UserAction()
     delete ui;
 }
 
-/** *****************
-  * PUBLIC METHODS *
-  *******************/
-
-void Dialog_UserAction::allocatePlayers(unsigned int playerCount)
-{
-    playerList.resize(playerCount);
-}
-
-void Dialog_UserAction::addPlayer(unsigned int ID, Player player)
-{
-    playerList.at(ID-1) = player;
-    QString playerName = player.mName + " (" + QString::number(ID) + ")";
-    ui->comboBox_playerList->addItem(playerName);
-}
-
-void Dialog_UserAction::allocateCities(unsigned int cityCount)
-{
-    cityList.resize(cityCount);
-}
-
-void Dialog_UserAction::addCity(unsigned int ID, City city)
-{
-    cityList.at(ID-1) = city;
-}
-
 
 /** *****************
   * PRIVATE METHODS *
-  *******************/
+  ********************/
 
 void Dialog_UserAction::ui_userActionSetupClean(void)
 {
@@ -78,6 +47,13 @@ void Dialog_UserAction::ui_userActionSetupClean(void)
 
     // Setup the Player and Action combo boxes and add the action items
     // The player are added to the list using the addPlayer public method
+    for (unsigned int i = 0; i < mPlayerListCopy.size(); i++)
+    {
+        //QString playerName = player.mName + " (" + QString::number(ID) + ")";
+        ui->comboBox_playerList->addItem(mPlayerListCopy.at(i).mName + " (" + QString::number(mPlayerListCopy.at(i).mId) + ")");
+    }
+
+
     for (unsigned int i = 0; i < NUMBER_OF_ACTION_IDS; ++i)
     {
         ui->comboBox_actionList->addItem(mActionList.at(i));
@@ -195,7 +171,7 @@ void Dialog_UserAction::acceptButtonControlCheck(void)
         if (comboOptionalListIndex > 0)
         {
             // Check the number of remaining monsters in the specified city
-            int monstersRemaining = int(cityList.at(unsigned(comboOptionalListIndex-1)).mMonstersRemaining);
+            int monstersRemaining = int(mCityListCopy.at(unsigned(comboOptionalListIndex-1)).mMonstersRemaining);
             if (monstersRemaining == 0) finalStatement = false;
             if (monstersRemaining < reportedNonRampagingMonsters) finalStatement = false;
         }
@@ -248,17 +224,17 @@ void Dialog_UserAction::setOptionalComboBox(QString setting)
     {
         ui->comboBox_optional->addItem("Select City");
 
-        for (unsigned int i = 0; i<cityList.size(); ++i) // change to list of cities revealed
+        for (unsigned int i = 0; i<mCityListCopy.size(); ++i) // change to list of cities revealed
         {
-            if (cityList.at(i).mDiscovered == true)
+            if (mCityListCopy.at(i).mDiscovered == true)
             {
-                if (cityList.at(i).mConquered == true)
+                if (mCityListCopy.at(i).mConquered == true)
                 {
-                    ui->comboBox_optional->addItem(cityList.at(i).mName + " (" + cityList.at(i).mColor + ")" + " [Conquered]");
+                    ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " [Conquered]");
                 }
                 else
                 {
-                    ui->comboBox_optional->addItem(cityList.at(i).mName + " (" + cityList.at(i).mColor + ")" + " ["+ QString::number(cityList.at(i).mMonstersRemaining) +"]");
+                    ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " ["+ QString::number(mCityListCopy.at(i).mMonstersRemaining) +"]");
                 }
             }
         }
@@ -319,7 +295,7 @@ void Dialog_UserAction::setOptionalComboBox(QString setting)
     }
 }
 
-void Dialog_UserAction::updateResults(void)
+/*void Dialog_UserAction::updateResults(void)
 {
     std::vector<QString> actionResultList(NUMBER_OF_SCORE_STATS);
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
@@ -327,8 +303,8 @@ void Dialog_UserAction::updateResults(void)
     // Create a copy of the selected player to try out the action and see the result
     Player player;
     // Only select the player if the playerIndex is within range
-    if ((playerIndex < playerList.size()) && (playerIndex > 0)) player = playerList.at(playerIndex);
-    else player = playerList.at(0); // Default/fallback selection
+    if ((playerIndex < mPlayerListCopy.size()) && (playerIndex > 0)) player = mPlayerListCopy.at(playerIndex);
+    else player = mPlayerListCopy.at(0); // Default/fallback selection
 
     // Create another copy of the player and use it to find the delta value given by the action
     Player playerCopy = player;
@@ -373,7 +349,7 @@ void Dialog_UserAction::updateResults(void)
             ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
         }
     }
-}
+}*/
 
 void Dialog_UserAction::clearScoreTable(void)
 {
@@ -648,6 +624,57 @@ void Dialog_UserAction::unitTableAddRow(unsigned int rows, Unit unit)
   * AKA. PRIVATE SLOTS *
   **********************/
 
+void Dialog_UserAction::on_newPlayerAndCityGameEngineData(const std::vector<Player>& playerList, const std::vector<City>& cityList)
+{
+    // Store the transmitted values as local copies
+    mPlayerListCopy = playerList;
+    mCityListCopy = cityList;
+
+    ui_userActionSetupClean();
+}
+
+void Dialog_UserAction::on_newTempPlayerData(const Player& player, const Player& playerTemp) {
+    std::vector<QString> actionResultList(NUMBER_OF_SCORE_STATS);
+
+             int newScore    = playerTemp.mScore;
+    unsigned int newFame     = playerTemp.mFame;
+             int newRep      = playerTemp.mReputation;
+    unsigned int newLevel    = playerTemp.mLevel;
+    unsigned int newAAC      = playerTemp.mAActionCards;
+    unsigned int newSpell    = playerTemp.mSpellCards;
+    unsigned int newArtifact = playerTemp.mArtifacts;
+    unsigned int newCrystals = playerTemp.mCrystals;
+
+             int deltaScore    = newScore         - player.mScore;
+    unsigned int deltaFame     = newFame          - player.mFame;
+             int deltaRep      = newRep           - player.mReputation;
+    unsigned int deltaLevel    = newLevel         - player.mLevel;
+             int deltaAAC      = int(newAAC)      - int(player.mAActionCards);
+             int deltaSpell    = int(newSpell)    - int(player.mSpellCards);
+             int deltaArtifact = int(newArtifact) - int(player.mArtifacts);
+             int deltaCrystals = int(newCrystals) - int(player.mCrystals);
+
+    actionResultList.at(SCORE_STAT_ID_SCORE)    = QString::number(newScore)    + "(" + QString::number(deltaScore) + ")";
+    actionResultList.at(SCORE_STAT_ID_FAME)     = QString::number(newFame)     + "(" + QString::number(deltaFame) + ")";
+    actionResultList.at(SCORE_STAT_ID_REP)      = QString::number(newRep)      + "(" + QString::number(deltaRep) + ")";
+    actionResultList.at(SCORE_STAT_ID_LEVEL)    = QString::number(newLevel)    + "(" + QString::number(deltaLevel) + ")";
+    actionResultList.at(SCORE_STAT_ID_AAC)      = QString::number(newAAC)      + "(" + QString::number(deltaAAC) + ")";
+    actionResultList.at(SCORE_STAT_ID_SPELL)    = QString::number(newSpell)    + "(" + QString::number(deltaSpell) + ")";
+    actionResultList.at(SCORE_STAT_ID_ARTIFACT) = QString::number(newArtifact) + "(" + QString::number(deltaArtifact) + ")";
+    actionResultList.at(SCORE_STAT_ID_CRYSTALS) = QString::number(newCrystals) + "(" + QString::number(deltaCrystals) + ")";
+
+    for (unsigned int i = 0; i < NUMBER_OF_SCORE_STATS; ++i)
+    {
+        ui->tableWidget_actionStats->setItem(1, int(i), new QTableWidgetItem(actionResultList.at(i)));
+
+        if ((i == SCORE_STAT_ID_LEVEL) && (deltaLevel > 0))
+        {
+            QColor playerColor = player.mPlayerColor;
+            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+        }
+    }
+}
+
 void Dialog_UserAction::on_pushButton_enterUserAction_clicked()
 {
     this->accept();
@@ -664,13 +691,14 @@ void Dialog_UserAction::on_pushButton_addMonster_clicked()
     acceptButtonControlCheck();
 
     unsigned int i = rand() % 8;
-    mSoundEffects.at(i).play();
+    mSoundEffects[i].play();
 }
 
 void Dialog_UserAction::on_pushButton_deleteMonster_clicked()
 {
     removeMonster(); // Adds a monster to the action monster list and displays it on the monster table
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
     acceptButtonControlCheck();
 }
 
@@ -684,7 +712,8 @@ void Dialog_UserAction::on_pushButton_addUnit_clicked()
 void Dialog_UserAction::on_pushButton_removeUnit_clicked()
 {
     removeUnit(); // Adds a monster to the action monster list and displays it on the monster table
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
     acceptButtonControlCheck();
 }
 
@@ -704,13 +733,14 @@ void Dialog_UserAction::on_comboBox_playerList_currentIndexChanged(int index)
     if (index > 0)
     {
         mplayerAction.mPlayerID = unsigned(index);
-        updateResults();
+        emit newTestUserAction(mplayerAction);
+        //updateResults();
         enableForm(true);
 
-        unsigned int nUnits = playerList.at(unsigned(index-1)).mUnits.size();
+        unsigned int nUnits = mPlayerListCopy.at(unsigned(index-1)).mUnits.size();
         for (unsigned int i = 0; i < nUnits; ++i)
         {
-            addUnit(playerList.at(unsigned(index-1)).mUnits.at(i));
+            addUnit(mPlayerListCopy.at(unsigned(index-1)).mUnits.at(i));
         }
     }
     else
@@ -799,7 +829,8 @@ void Dialog_UserAction::on_comboBox_actionList_currentIndexChanged(int index)
 
     monsterTableWidget_valueChanged(); // Trigger a check of the specified monsters using the new action id.
     acceptButtonControlCheck();        // Check if the accept button can be enabled (all necessary settings set)
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
 }
 
 void Dialog_UserAction::on_comboBox_optional_currentIndexChanged(int index)
@@ -811,7 +842,8 @@ void Dialog_UserAction::on_comboBox_optional_currentIndexChanged(int index)
     }
 
     acceptButtonControlCheck();
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
 }
 
 void Dialog_UserAction::on_comboBox_successFail_currentIndexChanged(const QString &arg1)
@@ -821,13 +853,14 @@ void Dialog_UserAction::on_comboBox_successFail_currentIndexChanged(const QStrin
     else                        mplayerAction.mSuccessFail = false;
 
     acceptButtonControlCheck();
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    // updateResults();
 }
 
 void Dialog_UserAction::on_spinBox_woundCounts_valueChanged(int arg1)
 {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
-    unsigned int availableWounds = playerList.at(playerIndex).mWounds;
+    unsigned int availableWounds = mPlayerListCopy.at(playerIndex).mWounds;
 
     if(-1 * int(availableWounds) > arg1)
     {
@@ -840,7 +873,8 @@ void Dialog_UserAction::on_spinBox_woundCounts_valueChanged(int arg1)
     }
 
     acceptButtonControlCheck();
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
 }
 
 void Dialog_UserAction::on_spinBox_addRep_valueChanged(int arg1)
@@ -848,7 +882,8 @@ void Dialog_UserAction::on_spinBox_addRep_valueChanged(int arg1)
     mplayerAction.mAddRepStep = arg1;
 
     acceptButtonControlCheck();
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
 }
 
 void Dialog_UserAction::on_spinBox_addFame_valueChanged(int arg1)
@@ -856,13 +891,14 @@ void Dialog_UserAction::on_spinBox_addFame_valueChanged(int arg1)
     mplayerAction.mAddFame = unsigned(arg1);
 
     acceptButtonControlCheck();
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
 }
 
 void Dialog_UserAction::on_spinBox_addCrystals_valueChanged(int arg1)
 {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
-    int availableCrystals = int(playerList.at(playerIndex).mCrystals);
+    int availableCrystals = int(mPlayerListCopy.at(playerIndex).mCrystals);
 
     if ((availableCrystals + arg1) <= 0)
     {
@@ -875,13 +911,14 @@ void Dialog_UserAction::on_spinBox_addCrystals_valueChanged(int arg1)
     }
 
     acceptButtonControlCheck();
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
 }
 
 void Dialog_UserAction::on_spinBox_thrownArtifacts_valueChanged(int arg1)
 {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
-    unsigned int availableArtifacts = playerList.at(playerIndex).mArtifacts;
+    unsigned int availableArtifacts = mPlayerListCopy.at(playerIndex).mArtifacts;
 
     if(int(availableArtifacts) < arg1)
     {
@@ -894,13 +931,14 @@ void Dialog_UserAction::on_spinBox_thrownArtifacts_valueChanged(int arg1)
     }
 
     acceptButtonControlCheck();
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
 }
 
 void Dialog_UserAction::on_spinBox_thrownAAC_valueChanged(int arg1)
 {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
-    unsigned int availableAAC = playerList.at(playerIndex).mAActionCards;
+    unsigned int availableAAC = mPlayerListCopy.at(playerIndex).mAActionCards;
 
     if (int(availableAAC) < arg1)
     {
@@ -914,7 +952,8 @@ void Dialog_UserAction::on_spinBox_thrownAAC_valueChanged(int arg1)
 
 
     acceptButtonControlCheck();
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
 }
 
 
@@ -963,7 +1002,8 @@ void Dialog_UserAction::monsterTableWidget_valueChanged()
     }
 
     acceptButtonControlCheck();
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
 }
 
 void Dialog_UserAction::unitTableWidget_valueChanged(void)
@@ -993,5 +1033,6 @@ void Dialog_UserAction::unitTableWidget_valueChanged(void)
     }
 
     acceptButtonControlCheck();
-    updateResults();
+    emit newTestUserAction(mplayerAction);
+    //updateResults();
 }

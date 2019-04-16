@@ -26,8 +26,8 @@
    <string>Dialog</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QDialog#Dialog_AddCity{  
-	border-image: url(:/images/images/Background_City.jpg);
+   <string notr="true">QDialog#Dialog_AddCity{
+	border-image: url(:/images/Image_Background_City);
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
