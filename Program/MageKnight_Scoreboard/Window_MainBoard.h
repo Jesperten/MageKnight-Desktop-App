@@ -33,35 +33,23 @@ namespace Ui {
 class Window_MainBoard;
 }
 
-class Window_MainBoard : public QMainWindow
-{
+class Window_MainBoard : public QMainWindow {
     Q_OBJECT
 
 public:
     // Constructor
     explicit Window_MainBoard(QWidget *parent = nullptr);
 
-    // Public methods
-    void allocatePlayers(unsigned int playerCount);
-    void addPlayer(unsigned int ID, QString name, QString character);
-    void allocateCities(unsigned int cityCount);
-    void setDayCount(unsigned int dayCount);
-
     // Destructor
     ~Window_MainBoard();
 
 signals:
     void userActionDialogOpened(void);
-    void newPlayerAndCityGameEngineData(const std::vector<Player>& playerList, const std::vector<City>& CityList); // For UserActionDialog only
-    void newTempPlayerData(const Player& player, const Player& playerTemp); // For UserActionDialog only
-    void newUserAction(Action userAction);
-    void newTestUserAction(Action testAction);
+    void playPauseToggle(void);
 
 public slots:
-    void on_newPlayerData(const std::vector<Player>& playerList, const GameTimer& gameTimer);
-    void on_newPlayerAndCityData(const std::vector<Player>& playerList, const std::vector<City>& cityList);
-    void on_newTestUserAction(Action testAction);
-    void on_newTempPlayerData(const Player& player, const Player& playerTemp);
+    void on_newMageKnightData(const std::vector<Player>& playerList, const std::vector<City>& cityList, const std::vector<QString>& greatestTitles, const GameTimer& gameTimer);
+    void on_gamePlayPauseState(bool gameActive);
 
 private slots:
     // Pushbutton slots
@@ -85,33 +73,20 @@ private:
     void setPlayerGraphics(const std::vector<Player>& playerList);
     void updateCityStats(Action action);
     void updatePlayerRanks(void);
-    void updateCityList(void);
-    void updateGreatestTitleList(void);
+    void updateCityList(const std::vector<City>& cityList);
+    void updateGreatestTitleList(const std::vector<QString>& greatestTitles);
     void updateGreatestTitleStats(void);
     void playerTableSetupClean(void);
     void cityTableSetupClean(void);
     void greatestTitleTableSetupClean(void);
     void graphWidgetSetupClean(void);
     void findCityLeader(unsigned int cityID);
-    //void findGreatestTitles(void);
 
     // Private members
     Ui::Window_MainBoard *ui;
-    Dialog_UserAction *actionDialog;
 
-    GameTimer *mpTimer = new GameTimer();
     unsigned long mGraphTimerMaxRange = 60;
     unsigned int mGraphPointMaxRange = 25;
-    unsigned int mDayCount = 0;
-
-    std::vector<Player> mPlayerListCopy; // Copy of data-list in GameEngine
-    std::vector<City> mCityListCopy;     // Copy of data-list in GameEngine
-
-    std::vector<Player> MageKnight_Player; // List of player objects (resized at initialization)
-    std::vector<City> MageKnight_Cities;   // List of discovered cities on the map (resized at initialization)
-    std::vector<unsigned int> PlayerRank;  // List of player ranks for run-time reordering of the players in the table
-    //std::vector <QString> greatestTitlesPlayers;
-    std::vector <QString> greatestTitles;
 
     QString mStyle_PushButton_normal   = " QPushButton {border-image: url(:/images/Image_PushButton_Normal);   font: 75 italic 14pt 'Cambria'; color: rgb(72, 52, 24) }";
     QString mStyle_PushButton_pressed  = " QPushButton {border-image: url(:/images/Image_PushButton_Pressed);  font: 75 italic 14pt 'Cambria'; color: rgb(72, 52, 24) }";

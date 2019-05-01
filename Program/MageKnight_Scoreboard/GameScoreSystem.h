@@ -10,7 +10,10 @@ void setLevel(unsigned int fame, Player* player);
 int repStepToRep(unsigned int repStep);
 void updateBasicScores(std::vector<Player>* playerList);
 void updateFinalScores(std::vector<Player>* playerList);
-void findGreatestTitles(std::vector<Player>* playerList);
+void updateCityStats(Action playerAction, City* city, Player* player);
+
+void findCityLeader(City* city, std::vector<Player>* playerList);
+void findGreatestTitles(std::vector<Player>* playerList, std::vector<QString>* greatestTitlesPlayers=nullptr);
 void findRanks(std::vector<Player>* playerList);
 
 void setOptionalDungeonBonus(unsigned optionalID, Player* player);
@@ -22,7 +25,6 @@ void setOptionalSpawningGroundsBonus(unsigned optionalID, Player* player);
 
 void greatestTitlesScoreSetupClean(void);
 
-static std::vector<QString> greatestTitlesPlayers; // List of strings used for display of greatest titles in the MainBoard window
 static std::vector<std::vector<int>> greatestValues; // 2D vector of greatest titles scores
 
 const unsigned int SCORE_PER_AAC = 1;

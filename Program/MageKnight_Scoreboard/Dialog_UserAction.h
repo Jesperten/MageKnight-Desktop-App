@@ -41,16 +41,17 @@ public:
     ~Dialog_UserAction();
 
     // Public members
-    Action mplayerAction;
 
     // Public methods
     void setDataLists(const std::vector<Player>& playerList, const std::vector<City>& cityList);
 
 signals:
     void newTestUserAction(Action testAction);
+    void newUserAction(Action userAction);
 
 private slots:
-    void on_newPlayerAndCityGameEngineData(const std::vector<Player>& playerList, const std::vector<City>& cityList);
+    void on_dialogSetupDataReceived(const std::vector<Player>& playerList, const std::vector<City>& cityList);
+    void on_newPlayerAndCityData(const std::vector<Player>& playerList, const std::vector<City>& cityList);
     void on_newTempPlayerData(const Player& player, const Player& playerTemp);
     void on_pushButton_enterUserAction_clicked();
     void on_pushButton_cancel_clicked();
@@ -69,7 +70,7 @@ private slots:
     void on_spinBox_addFame_valueChanged(int arg1);
     void on_spinBox_thrownArtifacts_valueChanged(int arg1);
     void on_spinBox_thrownAAC_valueChanged(int arg1);
-    void monsterTableWidget_valueChanged();
+    void monsterTableWidget_valueChanged(void);
     void unitTableWidget_valueChanged(void);
 
     void on_spinBox_addCrystals_valueChanged(int arg1);
@@ -78,6 +79,8 @@ private:
 
     // Private members
     Ui::Dialog_UserAction *ui;
+    Action mplayerAction;
+
     std::vector<QString> mActionList;
     std::vector<QString> mOptionalListDungeon;
     std::vector<QString> mOptionalListLabyrinth;
@@ -87,7 +90,6 @@ private:
     std::vector<QString> mOptionalListSpawningGrounds;
 
     QSoundEffect mSoundEffects[8];
-    //std::vector<QSoundEffect> mSoundEffects;
 
     std::vector<Player> mPlayerListCopy; // List of player objects (resized later)
     std::vector<City> mCityListCopy;     // List of City objects (resized later)
@@ -95,7 +97,7 @@ private:
     // Private methods
     void ui_userActionSetupClean(void);
     void acceptButtonControlCheck(void);
-    void setOptionalComboBox(QString setting);
+    void setOptionalComboBox(int index);
     void updateResults(void);
     void clearScoreTable(void);
     void defineStringLists(void);

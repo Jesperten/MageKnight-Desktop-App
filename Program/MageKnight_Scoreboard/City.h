@@ -9,9 +9,10 @@ public:
     City();
 
     // Public Members
-    QString mName = "Unknown";
-    QString mColor = "Unknown";
-    QString mCityOwner = "Volkare Biddybob";
+    QString mName = "";
+    QString mColor = "";
+    QString mCityOwner = "";
+    int mId = 0;
     int mLevel = 0;
     int mMonstersRemaining = 0;
     int mMonsters = 0;

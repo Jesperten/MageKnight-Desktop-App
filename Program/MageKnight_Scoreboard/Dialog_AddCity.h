@@ -8,14 +8,15 @@ namespace Ui {
 class Dialog_AddCity;
 }
 
-class Dialog_AddCity : public QDialog
-{
+class Dialog_AddCity : public QDialog {
     Q_OBJECT
 
 public:
     explicit Dialog_AddCity(QWidget *parent = nullptr);
     ~Dialog_AddCity();
-    City mCity;
+
+signals:
+    void newCityDiscovered(City newCity);
 
 private slots:
     void on_lineEdit_cityName_textChanged(const QString &arg1);
@@ -26,10 +27,12 @@ private slots:
 
 private:
     Ui::Dialog_AddCity *ui;
-    std::vector<int> greenCityMonsterList = {0, 2, 2, 3, 3 ,3 ,4, 4, 4, 5, 5, 5};
-    std::vector<int> blueCityMonsterList  = {0, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5};
-    std::vector<int> redCityMonsterList   = {0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5};
-    std::vector<int> whiteCityMonsterList = {0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5};
+    City mCity;
+
+    const std::vector<int> greenCityMonsterList = {0, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5};
+    const std::vector<int> blueCityMonsterList  = {0, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5};
+    const std::vector<int> redCityMonsterList   = {0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5};
+    const std::vector<int> whiteCityMonsterList = {0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5};
 
     void ui_dialogSetupClean();
     void dialogAcceptEnableCheck();

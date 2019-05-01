@@ -3,7 +3,7 @@
 Player::Player() {
     // Constructor of the Player class
 
-    mName = "Volkare Biddybob";
+    mName = "";
     mGreatestTitleScores.resize(NUMBER_OF_GREATEST_TITLES);
     mBasicScoreValues.resize(NUMBER_OF_GREATEST_TITLES);
     mGreatestTitleStats.resize(NUMBER_OF_GREATEST_TITLES);
@@ -11,19 +11,18 @@ Player::Player() {
     mPointData.resize(2);
     mTimeData.resize(2);
 
+    mCityTokens.resize(0);
+    mCityRelations.resize(0);
+
     mPointData = {0,0};
     mTimeData = {0,0};
 }
 
 // ------------------ PUBLIC METHODS ------------------
 
-void Player::setNumberOfCities(unsigned int cities) {
-    mCityTokens.resize(cities);
-    mCityRelations.resize(cities);
-
-    for (unsigned int i = 0; i < cities; ++i) {
-        mCityRelations.at(i) = CITY_RELATION_NONE;
-    }
+void Player::addNewCity(void) {
+    mCityTokens.push_back(0);
+    mCityRelations.push_back(CITY_RELATION_NONE);
 }
 
 void Player::setGreatestTitleState(greatest_title_items_t item, greatest_title_t state, int score) {

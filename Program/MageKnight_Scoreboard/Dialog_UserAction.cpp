@@ -3,14 +3,15 @@
 #include "Action.h"
 #include "ui_Dialog_UserAction.h"
 #include "Dialog_UserAction.h"
+#include "GameEngine.h"
 
-/** *****************
-  * PUBLIC METHODS *
-  *******************/
+/** ****************************************************** PUBLIC METHODS ********************************************************/
 
-Dialog_UserAction::Dialog_UserAction(QWidget *parent) : QDialog(parent), ui(new Ui::Dialog_UserAction)
-{
+Dialog_UserAction::Dialog_UserAction(QWidget *parent) : QDialog(parent), ui(new Ui::Dialog_UserAction) {
     ui->setupUi(this);
+
+    // Const pointer to the Singleton instance of the GameEngine class (global object)
+    const GameEngine* gameEngine = GameEngine::instance();
 
     // Reseed the random generator with the current time as parameter.
     // This is to ensure a more true random nature
@@ -25,37 +26,36 @@ Dialog_UserAction::Dialog_UserAction(QWidget *parent) : QDialog(parent), ui(new 
     mSoundEffects[6].setSource(QUrl("qrc:/sounds/Sound7"));
     mSoundEffects[7].setSource(QUrl("qrc:/sounds/Sound8"));
 
-    defineStringLists(); // Declares the string lists used in the different comboboxes
+    connect(gameEngine, &GameEngine::newMageKnightData, this, &Dialog_UserAction::on_newPlayerAndCityData );
 
-    //ui_userActionSetupClean();
+    connect(gameEngine, &GameEngine::userActionDialogData, this      , &Dialog_UserAction::on_dialogSetupDataReceived );
+    connect(gameEngine, &GameEngine::newTempPlayerData   , this      , &Dialog_UserAction::on_newTempPlayerData       );
+    connect(this      , &Dialog_UserAction::newUserAction, gameEngine, &GameEngine::on_newUserAction                  );
 }
 
-Dialog_UserAction::~Dialog_UserAction()
-{
+Dialog_UserAction::~Dialog_UserAction() {
     delete ui;
 }
 
+/** ****************************************************** PRIVATE METHODS *******************************************************/
 
-/** *****************
-  * PRIVATE METHODS *
-  ********************/
-
-void Dialog_UserAction::ui_userActionSetupClean(void)
-{
+void Dialog_UserAction::ui_userActionSetupClean(void) {
     std::vector<QString> tableStatsItems(NUMBER_OF_SCORE_STATS);
     QStringList tableMonstersItems;
 
+    mplayerAction.reset();
+    ui->comboBox_playerList->clear();
+    ui->comboBox_actionList->clear();
+
     // Setup the Player and Action combo boxes and add the action items
     // The player are added to the list using the addPlayer public method
-    for (unsigned int i = 0; i < mPlayerListCopy.size(); i++)
-    {
-        //QString playerName = player.mName + " (" + QString::number(ID) + ")";
+    ui->comboBox_playerList->addItem("Select Player");
+    for (unsigned int i = 0; i < mPlayerListCopy.size(); i++) {
         ui->comboBox_playerList->addItem(mPlayerListCopy.at(i).mName + " (" + QString::number(mPlayerListCopy.at(i).mId) + ")");
     }
 
 
-    for (unsigned int i = 0; i < NUMBER_OF_ACTION_IDS; ++i)
-    {
+    for (unsigned int i = 0; i < NUMBER_OF_ACTION_IDS; ++i) {
         ui->comboBox_actionList->addItem(mActionList.at(i));
     }
 
@@ -71,15 +71,14 @@ void Dialog_UserAction::ui_userActionSetupClean(void)
     tableStatsItems.at(SCORE_STAT_ID_STAT)     = "Stat";
     tableStatsItems.at(SCORE_STAT_ID_SCORE)    = "Score";
     tableStatsItems.at(SCORE_STAT_ID_FAME)     = "Fame";
-    tableStatsItems.at(SCORE_STAT_ID_REP)      = "Rep";
+    tableStatsItems.at(SCORE_STAT_ID_REP)      = "Reputation\nStep";
     tableStatsItems.at(SCORE_STAT_ID_LEVEL)    = "Level";
     tableStatsItems.at(SCORE_STAT_ID_AAC)      = "AAC";
     tableStatsItems.at(SCORE_STAT_ID_SPELL)    = "Spell";
     tableStatsItems.at(SCORE_STAT_ID_ARTIFACT) = "Artifact";
     tableStatsItems.at(SCORE_STAT_ID_CRYSTALS) = "Crystals";
 
-    for (unsigned int i = 0; i < NUMBER_OF_SCORE_STATS; ++i)
-    {
+    for (unsigned int i = 0; i < NUMBER_OF_SCORE_STATS; ++i) {
         ui->tableWidget_actionStats->setItem(0, int(i), new QTableWidgetItem(tableStatsItems.at(i)));
         ui->tableWidget_actionStats->setColumnWidth(int(i), 97);
     }
@@ -96,8 +95,7 @@ void Dialog_UserAction::ui_userActionSetupClean(void)
     ui->tableWidget_monsters->setColumnCount(4);
 
     tableMonstersItems << "Type" << "Fame" << "Special" << "Rampaging";
-    for (int i = 0; i < tableMonstersItems.length(); ++i)
-    {
+    for (int i = 0; i < tableMonstersItems.length(); ++i) {
         ui->tableWidget_monsters->setItem(0, i, new QTableWidgetItem(tableMonstersItems.at(i)));
     }
 
@@ -208,159 +206,90 @@ void Dialog_UserAction::acceptButtonControlCheck(void)
     ui->pushButton_enterUserAction->setEnabled(finalStatement);
 }
 
-void Dialog_UserAction::setOptionalComboBox(QString setting)
-{
-    const QSignalBlocker blocker(ui->comboBox_optional);
+void Dialog_UserAction::setOptionalComboBox(int index) {
     ui->comboBox_optional->clear();
 
-    // Default setting when no optional parameters are available
-    if (setting == "None")
-    {
+    switch (index) {
+    case ACTION_ID_TEXT: // No Action
+    case ACTION_ID_RAMPAGING_MONSTER:
+    case ACTION_ID_INTERACTION:
+    case ACTION_ID_PLUNDERED_VILLAGE:
+    case ACTION_ID_MAGE_TOWER:
+    case ACTION_ID_KEEP:
+    case ACTION_ID_BURNED_MONASTERY:
+    case ACTION_ID_TOMB:
+        // Default setting when no optional parameters are available
         ui->comboBox_optional->addItem("Optional parameter");
-    }
+        break;
 
-    // Set the optional combobox to include all revealed cities (revealed and listed in the Window_MainBoard scope)
-    else if (setting == "City")
-    {
+    case ACTION_ID_CITY: // City
+        // Set the optional combobox to include all revealed cities (revealed and listed in the Window_MainBoard scope
+
         ui->comboBox_optional->addItem("Select City");
 
-        for (unsigned int i = 0; i<mCityListCopy.size(); ++i) // change to list of cities revealed
-        {
-            if (mCityListCopy.at(i).mDiscovered == true)
-            {
-                if (mCityListCopy.at(i).mConquered == true)
-                {
-                    ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " [Conquered]");
-                }
-                else
-                {
-                    ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " ["+ QString::number(mCityListCopy.at(i).mMonstersRemaining) +"]");
-                }
-            }
+        // Change to list of revealed cities
+        for (unsigned int i = 0; i<mCityListCopy.size(); ++i) {
+            if (mCityListCopy.at(i).mConquered == true)
+                ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " [Conquered]");
+            else
+                ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " ["+ QString::number(mCityListCopy.at(i).mMonstersRemaining) +"]");
         }
-    }
+        break;
 
-    // Set the optional combobox to include all possible outcomes of clearing a dungeon.
-    else if (setting == "Dungeon")
-    {
-        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_DUNGEON_IDS; ++i)
-        {
+    case ACTION_ID_DUNGEON:
+        // Set the optional combobox to include all possible outcomes of clearing a dungeon.
+        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_DUNGEON_IDS; ++i) {
             ui->comboBox_optional->addItem(mOptionalListDungeon.at(i));
         }
-    }
+        break;
 
-    // Set the optional combobox to include all possible outcomes of clearing a labyrinth.
-    else if (setting == "Labyrinth")
-    {
-        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_LABYRINTH_IDS; ++i)
-        {
+    case ACTION_ID_LABYRINTH:
+        // Set the optional combobox to include all possible outcomes of clearing a labyrinth.
+        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_LABYRINTH_IDS; ++i) {
             ui->comboBox_optional->addItem(mOptionalListLabyrinth.at(i));
         }
-    }
+        break;
 
-    // Set the optional combobox to include all possible outcomes of clearing a maze.
-    else if (setting == "Maze")
-    {
-        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_MAZE_IDS; ++i)
-        {
+    case ACTION_ID_MAZE:
+        // Set the optional combobox to include all possible outcomes of clearing a maze.
+        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_MAZE_IDS; ++i) {
             ui->comboBox_optional->addItem(mOptionalListMaze.at(i));
         }
-    }
+        break;
 
-    // Set the optional combobox to include all possible outcomes of clearing a monster den.
-    else if (setting == "Monster Den")
-    {
-        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_MONSTER_DEN_IDS; ++i)
-        {
+    case ACTION_ID_MONSTER_DEN:
+        // Set the optional combobox to include all possible outcomes of clearing a monster den.
+        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_MONSTER_DEN_IDS; ++i) {
             ui->comboBox_optional->addItem(mOptionalListMonsterDen.at(i));
         }
-    }
+        break;
 
-    // Set the optional combobox to include all possible outcomes of clearing a ruin.
-    else if (setting == "Ruins")
-    {
-        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_RUIN_IDS; ++i)
-        {
+    case ACTION_ID_RUINS: // Ruins
+        // Set the optional combobox to include all possible outcomes of clearing a ruin.
+        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_RUIN_IDS; ++i) {
             ui->comboBox_optional->addItem(mOptionalListRuins.at(i));
         }
-    }
+        break;
 
-    // Set the optional combobox to include all possible outcomes of clearing a spawning grounds.
-    else if (setting == "Spawning Grounds")
-    {
-        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_SPAWNING_GROUNDS_IDS; ++i)
-        {
+    case ACTION_ID_SPAWNING_GROUNDS:
+        // Set the optional combobox to include all possible outcomes of clearing a spawning grounds.
+        for (unsigned int i = 0; i<NUMBER_OF_OPTIONAL_SPAWNING_GROUNDS_IDS; ++i) {
             ui->comboBox_optional->addItem(mOptionalListSpawningGrounds.at(i));
         }
+        break;
+
+    default:
+        break;
     }
 }
 
-/*void Dialog_UserAction::updateResults(void)
-{
-    std::vector<QString> actionResultList(NUMBER_OF_SCORE_STATS);
-    unsigned int playerIndex = mplayerAction.mPlayerID - 1;
-
-    // Create a copy of the selected player to try out the action and see the result
-    Player player;
-    // Only select the player if the playerIndex is within range
-    if ((playerIndex < mPlayerListCopy.size()) && (playerIndex > 0)) player = mPlayerListCopy.at(playerIndex);
-    else player = mPlayerListCopy.at(0); // Default/fallback selection
-
-    // Create another copy of the player and use it to find the delta value given by the action
-    Player playerCopy = player;
-
-    // Add the action to the playerCopy to find the result of the action
-    playerCopy.addAction(mplayerAction);
-
-             int newScore    = playerCopy.mScore;
-    unsigned int newFame     = playerCopy.mFame;
-             int newRep      = playerCopy.mReputation;
-    unsigned int newLevel    = playerCopy.mLevel;
-    unsigned int newAAC      = playerCopy.mAActionCards;
-    unsigned int newSpell    = playerCopy.mSpellCards;
-    unsigned int newArtifact = playerCopy.mArtifacts;
-    unsigned int newCrystals = playerCopy.mCrystals;
-
-             int deltaScore    = newScore         - player.mScore;
-    unsigned int deltaFame     = newFame          - player.mFame;
-             int deltaRep      = newRep           - player.mReputation;
-    unsigned int deltaLevel    = newLevel         - player.mLevel;
-             int deltaAAC      = int(newAAC)      - int(player.mAActionCards);
-             int deltaSpell    = int(newSpell)    - int(player.mSpellCards);
-             int deltaArtifact = int(newArtifact) - int(player.mArtifacts);
-             int deltaCrystals = int(newCrystals) - int(player.mCrystals);
-
-    actionResultList.at(SCORE_STAT_ID_SCORE)    = QString::number(newScore)    + "(" + QString::number(deltaScore) + ")";
-    actionResultList.at(SCORE_STAT_ID_FAME)     = QString::number(newFame)     + "(" + QString::number(deltaFame) + ")";
-    actionResultList.at(SCORE_STAT_ID_REP)      = QString::number(newRep)      + "(" + QString::number(deltaRep) + ")";
-    actionResultList.at(SCORE_STAT_ID_LEVEL)    = QString::number(newLevel)    + "(" + QString::number(deltaLevel) + ")";
-    actionResultList.at(SCORE_STAT_ID_AAC)      = QString::number(newAAC)      + "(" + QString::number(deltaAAC) + ")";
-    actionResultList.at(SCORE_STAT_ID_SPELL)    = QString::number(newSpell)    + "(" + QString::number(deltaSpell) + ")";
-    actionResultList.at(SCORE_STAT_ID_ARTIFACT) = QString::number(newArtifact) + "(" + QString::number(deltaArtifact) + ")";
-    actionResultList.at(SCORE_STAT_ID_CRYSTALS) = QString::number(newCrystals) + "(" + QString::number(deltaCrystals) + ")";
-
-    for (unsigned int i = 0; i < NUMBER_OF_SCORE_STATS; ++i)
-    {
-        ui->tableWidget_actionStats->setItem(1, int(i), new QTableWidgetItem(actionResultList.at(i)));
-
-        if ((i == SCORE_STAT_ID_LEVEL) && (deltaLevel > 0))
-        {
-            QColor playerColor = playerCopy.mPlayerColor;
-            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
-        }
-    }
-}*/
-
-void Dialog_UserAction::clearScoreTable(void)
-{
-    for (int i = 0; i < NUMBER_OF_SCORE_STATS; ++i)
-    {
+void Dialog_UserAction::clearScoreTable(void) {
+    for (int i = 0; i < NUMBER_OF_SCORE_STATS; ++i) {
         ui->tableWidget_actionStats->setItem(1, i+1, new QTableWidgetItem()); // Load the cells with empty QTableWidgetItems
     }
 }
 
-void Dialog_UserAction::enableForm(bool enabled)
-{
+void Dialog_UserAction::enableForm(bool enabled) {
     // Enable / disabled all comboboxes and spinboxes when the PlayerList index changes
     ui->comboBox_actionList->setEnabled(enabled);
     ui->comboBox_optional->setAutoCompletion(enabled);
@@ -437,8 +366,7 @@ void Dialog_UserAction::defineStringLists(void)
     mOptionalListSpawningGrounds[OPTIONAL_SPAWNING_GROUNDS_ARTIFACT_3_FAME]            = "+1 Artifact, +3 Fame";
 }
 
-void Dialog_UserAction::addMonster(void)
-{
+void Dialog_UserAction::addMonster(void) {
     // The new number of rows in the monster table is increased by one
     int rows = ui->tableWidget_monsters->rowCount() + 1;
 
@@ -487,8 +415,7 @@ void Dialog_UserAction::removeUnit(void)
     if (rows <= 1) ui->pushButton_removeUnit->setEnabled(false);
 }
 
-void Dialog_UserAction::monsterTableAddRow(unsigned int rows)
-{
+void Dialog_UserAction::monsterTableAddRow(unsigned int rows) {
     std::vector<QString> monsterTypes(NUMBER_OF_MONSTER_TYPES);
     std::vector<QColor> monsterTypeColors(NUMBER_OF_MONSTER_TYPES);
 
@@ -520,12 +447,12 @@ void Dialog_UserAction::monsterTableAddRow(unsigned int rows)
 
     monsterSpecials << "Select Special"
                     << "None"
-                    << "Hero"
-                    << "Faction 1"
-                    << "Faction 2";
+                    << "Heroes"
+                    << "Thugs"
+                    << "Elementalist"
+                    << "Dark Crusader";
 
-    for (unsigned int i = 0; i < NUMBER_OF_MONSTER_TYPES; ++i)
-    {
+    for (unsigned int i = 0; i < NUMBER_OF_MONSTER_TYPES; ++i) {
         monsterType->addItem(monsterTypes.at(i));
         monsterType->setItemData(int(i), monsterTypeColors.at(i), Qt::BackgroundRole);
     }
@@ -548,8 +475,7 @@ void Dialog_UserAction::monsterTableAddRow(unsigned int rows)
     connect(rampagingState, SIGNAL(stateChanged(int)),        this, SLOT(monsterTableWidget_valueChanged()));
 }
 
-void Dialog_UserAction::unitTableAddRow(unsigned int rows, Unit unit)
-{
+void Dialog_UserAction::unitTableAddRow(unsigned int rows, Unit unit) {
     QComboBox* unitType = new QComboBox;
     QCheckBox* woundState = new QCheckBox;
 
@@ -594,21 +520,18 @@ void Dialog_UserAction::unitTableAddRow(unsigned int rows, Unit unit)
 
     unsigned int unitId = 0;
 
-    for (unsigned int i = 1; i < NUMBER_OF_UNIT_TYPES; ++i)
-    {
+    for (unsigned int i = 1; i < NUMBER_OF_UNIT_TYPES; ++i) {
         QString unitText = unitTypes.at(i) + " (" + QString::number(int(unitLevels.at(i))) + ")";
 
         unitType->addItem(unitText);
 
-        if (unit.mName == unitText)
-        {
+        if (unit.mName == unitText) {
             unitId = i;
         }
     }
 
     // Check if the specified Unit is an actual unit, or just a placeholder (new unit)
-    if (unitId > 0)
-    {
+    if (unitId > 0) {
         unitType->setCurrentIndex(int(unitId));
         woundState->setChecked(unit.mWounded);
     }
@@ -624,64 +547,65 @@ void Dialog_UserAction::unitTableAddRow(unsigned int rows, Unit unit)
   * AKA. PRIVATE SLOTS *
   **********************/
 
-void Dialog_UserAction::on_newPlayerAndCityGameEngineData(const std::vector<Player>& playerList, const std::vector<City>& cityList)
-{
+void Dialog_UserAction::on_dialogSetupDataReceived(const std::vector<Player>& playerList, const std::vector<City>& cityList) {
     // Store the transmitted values as local copies
     mPlayerListCopy = playerList;
     mCityListCopy = cityList;
 
+    defineStringLists(); // Declares the string lists used in the different comboboxes
     ui_userActionSetupClean();
+
+    // Const pointer to the Singleton instance of the GameEngine class (global object)
+    const GameEngine* gameEngine = GameEngine::instance();
+    connect(this, &Dialog_UserAction::newTestUserAction, gameEngine, &GameEngine::on_newTestUserAction);
+}
+
+void Dialog_UserAction::on_newPlayerAndCityData(const std::vector<Player>& playerList, const std::vector<City>& cityList) {
+    // Store the new transmitted values as local copies
+    mPlayerListCopy = playerList;
+    mCityListCopy = cityList;
+
+    emit newTestUserAction(mplayerAction);
 }
 
 void Dialog_UserAction::on_newTempPlayerData(const Player& player, const Player& playerTemp) {
     std::vector<QString> actionResultList(NUMBER_OF_SCORE_STATS);
 
-             int newScore    = playerTemp.mScore;
-    unsigned int newFame     = playerTemp.mFame;
-             int newRep      = playerTemp.mReputation;
-    unsigned int newLevel    = playerTemp.mLevel;
-    unsigned int newAAC      = playerTemp.mAActionCards;
-    unsigned int newSpell    = playerTemp.mSpellCards;
-    unsigned int newArtifact = playerTemp.mArtifacts;
-    unsigned int newCrystals = playerTemp.mCrystals;
+             int deltaScore    = playerTemp.mScore             - player.mScore;
+    unsigned int deltaFame     = playerTemp.mFame              - player.mFame;
+             int deltaRep      = playerTemp.mReputation        - player.mReputation;
+             int deltaRepStep  = playerTemp.mRepStep           - player.mRepStep;
+    unsigned int deltaLevel    = playerTemp.mLevel             - player.mLevel;
+             int deltaAAC      = int(playerTemp.mAActionCards) - int(player.mAActionCards);
+             int deltaSpell    = int(playerTemp.mSpellCards)   - int(player.mSpellCards);
+             int deltaArtifact = int(playerTemp.mArtifacts)    - int(player.mArtifacts);
+             int deltaCrystals = int(playerTemp.mCrystals)     - int(player.mCrystals);
 
-             int deltaScore    = newScore         - player.mScore;
-    unsigned int deltaFame     = newFame          - player.mFame;
-             int deltaRep      = newRep           - player.mReputation;
-    unsigned int deltaLevel    = newLevel         - player.mLevel;
-             int deltaAAC      = int(newAAC)      - int(player.mAActionCards);
-             int deltaSpell    = int(newSpell)    - int(player.mSpellCards);
-             int deltaArtifact = int(newArtifact) - int(player.mArtifacts);
-             int deltaCrystals = int(newCrystals) - int(player.mCrystals);
+    actionResultList.at(SCORE_STAT_ID_SCORE)    = QString::number(playerTemp.mScore)        + "(" + QString::number(deltaScore)    + ")";
+    actionResultList.at(SCORE_STAT_ID_FAME)     = QString::number(playerTemp.mFame)         + "(" + QString::number(deltaFame)     + ")";
+    actionResultList.at(SCORE_STAT_ID_REP)      = QString::number(playerTemp.mReputation)   + "(" + QString::number(deltaRep)      + ")" + "\n" + QString::number(int(playerTemp.mRepStep) - 7) + "(" + QString::number(deltaRepStep)      + ")";
+    actionResultList.at(SCORE_STAT_ID_LEVEL)    = QString::number(playerTemp.mLevel)        + "(" + QString::number(deltaLevel)    + ")";
+    actionResultList.at(SCORE_STAT_ID_AAC)      = QString::number(playerTemp.mAActionCards) + "(" + QString::number(deltaAAC)      + ")";
+    actionResultList.at(SCORE_STAT_ID_SPELL)    = QString::number(playerTemp.mSpellCards)   + "(" + QString::number(deltaSpell)    + ")";
+    actionResultList.at(SCORE_STAT_ID_ARTIFACT) = QString::number(playerTemp.mArtifacts)    + "(" + QString::number(deltaArtifact) + ")";
+    actionResultList.at(SCORE_STAT_ID_CRYSTALS) = QString::number(playerTemp.mCrystals)     + "(" + QString::number(deltaCrystals) + ")";
 
-    actionResultList.at(SCORE_STAT_ID_SCORE)    = QString::number(newScore)    + "(" + QString::number(deltaScore) + ")";
-    actionResultList.at(SCORE_STAT_ID_FAME)     = QString::number(newFame)     + "(" + QString::number(deltaFame) + ")";
-    actionResultList.at(SCORE_STAT_ID_REP)      = QString::number(newRep)      + "(" + QString::number(deltaRep) + ")";
-    actionResultList.at(SCORE_STAT_ID_LEVEL)    = QString::number(newLevel)    + "(" + QString::number(deltaLevel) + ")";
-    actionResultList.at(SCORE_STAT_ID_AAC)      = QString::number(newAAC)      + "(" + QString::number(deltaAAC) + ")";
-    actionResultList.at(SCORE_STAT_ID_SPELL)    = QString::number(newSpell)    + "(" + QString::number(deltaSpell) + ")";
-    actionResultList.at(SCORE_STAT_ID_ARTIFACT) = QString::number(newArtifact) + "(" + QString::number(deltaArtifact) + ")";
-    actionResultList.at(SCORE_STAT_ID_CRYSTALS) = QString::number(newCrystals) + "(" + QString::number(deltaCrystals) + ")";
-
-    for (unsigned int i = 0; i < NUMBER_OF_SCORE_STATS; ++i)
-    {
+    for (unsigned int i = 0; i < NUMBER_OF_SCORE_STATS; ++i) {
         ui->tableWidget_actionStats->setItem(1, int(i), new QTableWidgetItem(actionResultList.at(i)));
 
-        if ((i == SCORE_STAT_ID_LEVEL) && (deltaLevel > 0))
-        {
+        if ((i == SCORE_STAT_ID_LEVEL) && (deltaLevel > 0)) {
             QColor playerColor = player.mPlayerColor;
             ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
         }
     }
 }
 
-void Dialog_UserAction::on_pushButton_enterUserAction_clicked()
-{
+void Dialog_UserAction::on_pushButton_enterUserAction_clicked() {
+    emit newUserAction(mplayerAction);
     this->accept();
 }
 
-void Dialog_UserAction::on_pushButton_cancel_clicked()
-{
+void Dialog_UserAction::on_pushButton_cancel_clicked() {
     this->reject();
 }
 
@@ -709,16 +633,13 @@ void Dialog_UserAction::on_pushButton_addUnit_clicked()
     acceptButtonControlCheck();
 }
 
-void Dialog_UserAction::on_pushButton_removeUnit_clicked()
-{
+void Dialog_UserAction::on_pushButton_removeUnit_clicked() {
     removeUnit(); // Adds a monster to the action monster list and displays it on the monster table
     emit newTestUserAction(mplayerAction);
-    //updateResults();
     acceptButtonControlCheck();
 }
 
-void Dialog_UserAction::on_comboBox_playerList_currentIndexChanged(int index)
-{    
+void Dialog_UserAction::on_comboBox_playerList_currentIndexChanged(int index) {
     // Clear the score view, monsterlist and unitList and reset the action instance
     clearScoreTable();
 
@@ -730,97 +651,63 @@ void Dialog_UserAction::on_comboBox_playerList_currentIndexChanged(int index)
 
     mplayerAction.reset();
 
-    if (index > 0)
-    {
+    if (index > 0) {
         mplayerAction.mPlayerID = unsigned(index);
         emit newTestUserAction(mplayerAction);
         //updateResults();
         enableForm(true);
 
         unsigned int nUnits = mPlayerListCopy.at(unsigned(index-1)).mUnits.size();
-        for (unsigned int i = 0; i < nUnits; ++i)
-        {
+        for (unsigned int i = 0; i < nUnits; ++i) {
             addUnit(mPlayerListCopy.at(unsigned(index-1)).mUnits.at(i));
         }
     }
-    else
-    {
+    else {
         enableForm(false);
     }
 
     acceptButtonControlCheck();
 }
 
-void Dialog_UserAction::on_comboBox_actionList_currentIndexChanged(int index)
-{
+void Dialog_UserAction::on_comboBox_actionList_currentIndexChanged(int index) {
     mplayerAction.mPlayerID = unsigned(ui->comboBox_playerList->currentIndex());
     mplayerAction.mMainActionID = unsigned(index);
 
     clearScoreTable();
 
     ui->comboBox_successFail->setCurrentIndex(0);
+    setOptionalComboBox(index);
 
     switch (index) {
     case ACTION_ID_TEXT: // No Action
     case ACTION_ID_RAMPAGING_MONSTER:
     case ACTION_ID_INTERACTION:
     case ACTION_ID_PLUNDERED_VILLAGE:
-        // Clear and disable the optional ComboBox
-        setOptionalComboBox("None");
-        ui->comboBox_optional->setEnabled(false);
-        ui->comboBox_successFail->setEnabled(false);
+        ui->comboBox_optional->setEnabled(false);    // Not used
+        ui->comboBox_successFail->setEnabled(false); // Not used
         break;
 
     case ACTION_ID_MAGE_TOWER:
     case ACTION_ID_KEEP:
     case ACTION_ID_BURNED_MONASTERY:
     case ACTION_ID_TOMB:
-        // Clear and disable the optional ComboBox
-        setOptionalComboBox("None");
-        ui->comboBox_optional->setEnabled(false);
-        ui->comboBox_successFail->setEnabled(true);
+        ui->comboBox_optional->setEnabled(false);    // Not used
+        ui->comboBox_successFail->setEnabled(true);  // Used to define success/fail state
         break;
 
     case ACTION_ID_DUNGEON:
-        setOptionalComboBox("Dungeon");
-        ui->comboBox_optional->setEnabled(true);
-        ui->comboBox_successFail->setEnabled(true);
-        break;
-
     case ACTION_ID_LABYRINTH:
-        setOptionalComboBox("Labyrinth");
-        ui->comboBox_optional->setEnabled(true);
-        ui->comboBox_successFail->setEnabled(true);
-        break;
-
     case ACTION_ID_MAZE:
-        setOptionalComboBox("Maze");
-        ui->comboBox_optional->setEnabled(true);
-        ui->comboBox_successFail->setEnabled(true);
-        break;
-
     case ACTION_ID_MONSTER_DEN:
-        setOptionalComboBox("Monster Den");
-        ui->comboBox_optional->setEnabled(true);
-        ui->comboBox_successFail->setEnabled(true);
-        break;
-
-    case ACTION_ID_RUINS: // Ruins
-        setOptionalComboBox("Ruins");
-        ui->comboBox_optional->setEnabled(true);
-        ui->comboBox_successFail->setEnabled(true);
-        break;
-
+    case ACTION_ID_RUINS:
     case ACTION_ID_SPAWNING_GROUNDS:
-        setOptionalComboBox("Spawning Grounds");
-        ui->comboBox_optional->setEnabled(true);
-        ui->comboBox_successFail->setEnabled(true);
+        ui->comboBox_optional->setEnabled(true);     // Used to set reward if succeeded
+        ui->comboBox_successFail->setEnabled(true);  // Used to define success/fail state
         break;
 
     case ACTION_ID_CITY: // City
-        setOptionalComboBox("City");
-        ui->comboBox_optional->setEnabled(true);
-        ui->comboBox_successFail->setEnabled(false);
+        ui->comboBox_optional->setEnabled(true);     // Used to select attacked city
+        ui->comboBox_successFail->setEnabled(false); // Not used
         break;
 
     default:
@@ -830,7 +717,6 @@ void Dialog_UserAction::on_comboBox_actionList_currentIndexChanged(int index)
     monsterTableWidget_valueChanged(); // Trigger a check of the specified monsters using the new action id.
     acceptButtonControlCheck();        // Check if the accept button can be enabled (all necessary settings set)
     emit newTestUserAction(mplayerAction);
-    //updateResults();
 }
 
 void Dialog_UserAction::on_comboBox_optional_currentIndexChanged(int index)
@@ -956,8 +842,7 @@ void Dialog_UserAction::on_spinBox_thrownAAC_valueChanged(int arg1)
     //updateResults();
 }
 
-
-void Dialog_UserAction::monsterTableWidget_valueChanged()
+void Dialog_UserAction::monsterTableWidget_valueChanged(void)
 {
     int nMonsters = ui->tableWidget_monsters->rowCount()-1;
 

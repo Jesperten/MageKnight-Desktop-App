@@ -1,7 +1,7 @@
 #include "GameTimer.h"
 
 GameTimer::GameTimer(QObject *parent) : QObject(parent) {
-    connect(&mpTimer, SIGNAL(timeout()), this, SLOT(on_TimeOut()));
+    connect(&mpTimer, &QTimer::timeout, this, &GameTimer::on_TimeOut);
 }
 
 void GameTimer::on_TimeOut() {

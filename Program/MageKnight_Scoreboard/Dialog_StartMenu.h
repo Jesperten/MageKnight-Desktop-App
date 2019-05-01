@@ -19,7 +19,7 @@ public:
     ~Dialog_StartMenu();
 
 signals:
-    void mageKnightPlayerAdded(QString playerName, QString playerCharacter);
+    void playerAdded(QString playerName, QString playerCharacter);
     void resetGame();    // If the user returns from the "New Game" menu back to the start page
     void startNewGame(); // When the user presses "Start" to trigger the actual game start
 

@@ -52,12 +52,12 @@ void Dialog_StartMenu::on_pushButton_newGame_clicked() {
     ui->stackedWidget->setCurrentIndex(1); // Go to the "New Game" menu view
 
     // Test purpose only (for faster game start)
-    emit mageKnightPlayerAdded("Lars", "Arythea");
-    emit mageKnightPlayerAdded("John", "Braevelar");
-    emit mageKnightPlayerAdded("Will", "Goldyx");
-    emit mageKnightPlayerAdded("Bent", "Wolfhawk");
-    emit mageKnightPlayerAdded("Finn", "Tovak");
-    emit mageKnightPlayerAdded("Mark", "Norowas");
+    emit playerAdded("Lars", "Arythea");
+    emit playerAdded("John", "Braevelar");
+    emit playerAdded("Will", "Goldyx");
+    emit playerAdded("Bent", "Wolfhawk");
+    emit playerAdded("Finn", "Tovak");
+    emit playerAdded("Mark", "Norowas");
 }
 
 void Dialog_StartMenu::on_pushButton_loadGame_clicked() {
@@ -88,7 +88,7 @@ void Dialog_StartMenu::on_pushButton_addPlayer_clicked() {
     ui->lineEdit_playerName->clear();
 
     // Send the new player to the GameEngine.
-    emit mageKnightPlayerAdded(playerName, playerCharacter);
+    emit playerAdded(playerName, playerCharacter);
 }
 
 void Dialog_StartMenu::on_comboBox_playerCharacter_currentIndexChanged(const QString &arg1) {

@@ -130,26 +130,27 @@ void addPlayerAction(Action playerAction, Player* player) {
 
         player->mFame += playerAction.mMonsters.at(i).mFame;
 
-        if (player->mMonsters.at(i).mSpecial == "Hero") {
+        if (player->mMonsters.at(i).mSpecial == "Heroes") {
             tempRepStep -= 1;
+        }
+        else if (player->mMonsters.at(i).mSpecial == "Thugs") {
+            tempRepStep += 1;
+        }
+        else if (player->mMonsters.at(i).mSpecial == "Elementalist") {
             player->mFame += 1;
         }
-        else if (player->mMonsters.at(i).mSpecial == "Faction 1") {
-            tempRepStep += 1;
-        }
-        else if (player->mMonsters.at(i).mSpecial == "Faction 2") {
-            tempRepStep += 1;
+        else if (player->mMonsters.at(i).mSpecial == "Dark Crusader") {
+            player->mFame += 1;
         }
 
         if (playerAction.mMonsters.at(i).mRampaging) {
-            if      (playerAction.mMonsters.at(i).mType == "Orc Marauders") tempRepStep += 1;
+            if      (playerAction.mMonsters.at(i).mType == "Marauding Orc") tempRepStep += 1;
             else if (playerAction.mMonsters.at(i).mType == "Draconum")      tempRepStep += 2;
         }
     }
 
     // Given the (new) calculated Fame, the level of the player should be updated
     setLevel(player->mFame, player);
-
 
          if (tempRepStep < 0)  player->mRepStep = 0;
     else if (tempRepStep > 14) player->mRepStep = 14;
@@ -165,6 +166,7 @@ void addPlayerAction(Action playerAction, Player* player) {
         player->addUnit(playerAction.mUnits.at(i));
     }
 }
+
 
 void setLevel(unsigned int fame, Player* player) {
 
@@ -204,22 +206,22 @@ int repStepToRep(unsigned int repStep) {
     return rep.at(repStep);
 }
 
+
 void updateBasicScores(std::vector<Player>* playerList) {
     for (unsigned int i = 0; i < playerList->size(); i++) {
         // Calculate the leader scores based on the Player Units vector
         unsigned int leaderPoints = 0;
 
-        for (unsigned int j = 0; i < playerList->at(i).mUnits.size(); ++i) {
+        for (unsigned int j = 0; j < playerList->at(i).mUnits.size(); j++) {
             leaderPoints += playerList->at(i).mUnits.at(j).getScore();
         }
 
         // Calculate the City points based on the Player City status vector
         unsigned int cityPoints = 0;
 
-        for (unsigned int j = 0; i < playerList->at(i).mCityRelations.size(); ++i)
+        for (unsigned int j = 0; j < playerList->at(i).mCityRelations.size(); ++j)
         {
-            switch (playerList->at(i).mCityRelations.at(j))
-            {
+            switch (playerList->at(i).mCityRelations.at(j)) {
             case CITY_RELATION_NONE:
                 break;
 
@@ -253,13 +255,14 @@ void updateFinalScores(std::vector<Player>* playerList) {
     int totalScore;
 
     for (unsigned int i = 0; i < playerList->size(); i++) {
-        totalScore = 0;
+        totalScore = playerList->at(i).mFame;
 
         for (unsigned int j = 0; j < NUMBER_OF_GREATEST_TITLES; j++) {
             totalScore += playerList->at(i).mBasicScoreValues.at(j);
             totalScore += playerList->at(i).mGreatestTitleScores.at(j);
         }
 
+        // If the temp value is different from the player score, then update the score and add the data to the player score-plot array
         if (totalScore != playerList->at(i).mScore) {
             playerList->at(i).mScore = totalScore;
 
@@ -269,11 +272,80 @@ void updateFinalScores(std::vector<Player>* playerList) {
             playerList->at(i).mTimeData.push_back(playerList->at(i).mTimeData.back());
             playerList->at(i).mTimeData.push_back(playerList->at(i).mTimeData.back());
         }
-        // If the temp value is different from the player score, then update the score and add the data to the player score-plot array
     }
 }
 
-void findGreatestTitles(std::vector<Player>* playerList) {
+void updateCityStats(Action playerAction, City* city, Player* player) {
+
+    unsigned int monsterCount = playerAction.mMonsters.size();
+
+    // Subtract all the rampaging monsters from the count before subtracting from the city monster count
+    for (unsigned int i = 0; i < playerAction.mMonsters.size(); ++i) {
+        if (playerAction.mMonsters.at(i).mRampaging) --monsterCount;
+    }
+
+    city->mMonstersRemaining -= monsterCount;       // Find the number of remaining monsters in the given city
+    player->mCityTokens.at(city->mId) += monsterCount; // Assign the number of tokens in the city for the given player
+}
+
+void findCityLeader(City* city, std::vector<Player>* playerList) {
+    unsigned int maxScore = 0;
+    unsigned int playerScore = 0;
+    bool tied = false;
+    std::vector <unsigned int> cityLeaderIDs;
+    QString cityOwner = "";
+
+    // Search through all players and determine the maxScore (number of tokens) and if it is tied between two or more players
+    for (unsigned int i = 0; i < playerList->size(); ++i) {
+        playerScore = playerList->at(i).mCityTokens.at(city->mId);
+        if (playerScore > maxScore) {
+            maxScore = playerScore;
+            tied = false;
+        }
+        else if (playerScore == maxScore)
+            tied = true;
+    }
+
+    // Use the found maxscore to set the city relation status for all players
+    for (unsigned int i = 0; i < playerList->size(); ++i) {
+        playerScore = playerList->at(i).mCityTokens.at(city->mId);
+
+        if (playerScore == maxScore) {
+            // Add the current playerID to the city leader IDs list
+            cityLeaderIDs.push_back(i);
+
+            if (tied)
+                playerList->at(i).mCityRelations.at(city->mId) = CITY_RELATION_IS_TIED_LEADER;
+            else
+                playerList->at(i).mCityRelations.at(city->mId) = CITY_RELATION_IS_LEADER;
+        }
+
+        else if (playerScore > 0)
+            playerList->at(i).mCityRelations.at(city->mId) = CITY_RELATION_HAS_TOKENS;
+        else
+            playerList->at(i).mCityRelations.at(city->mId) = CITY_RELATION_NONE;
+    }
+
+    if (tied) {
+        cityOwner = playerList->at(cityLeaderIDs.at(0)).mName;
+
+        for (unsigned int i = 1; i < cityLeaderIDs.size(); ++i) {
+            cityOwner += ", ";
+            cityOwner += playerList->at(cityLeaderIDs.at(i)).mName;
+        }
+        cityOwner += " (tied)";
+    }
+    else {
+        cityOwner = playerList->at(cityLeaderIDs.at(0)).mName;
+    }
+
+    city->mCityOwner = cityOwner;
+}
+
+void findGreatestTitles(std::vector<Player>* playerList, std::vector<QString>* greatestTitlesPlayers) {
+    // greatestTitlesPlayers argument is optional. By default this is set as a nullptr.
+    // in case greatestTitlesPlayers == nullptr, the string vector will not be manipulated
+
     unsigned int maxScore = 0;
     unsigned int playerScore = 0;
     bool tied = false;
@@ -305,16 +377,16 @@ void findGreatestTitles(std::vector<Player>* playerList) {
                 playerList->at(j).setGreatestTitleState(greatest_title_items_t(i), GREATEST_TITLE_NONE, greatestValues.at(i).at(GREATEST_TITLE_NONE));
 
                 // There can be no leader if the found max score is 0.
-                if (maxScore == 0) {
-                    greatestTitlesPlayers.at(i) = "Volkare Biddybob";
+                if ((maxScore == 0) && (greatestTitlesPlayers != nullptr)) {
+                    greatestTitlesPlayers->at(i) = "";
                 }
             }
             else if (playerScore == maxScore) {
                 if (tied) {
                     playerList->at(j).setGreatestTitleState(greatest_title_items_t(i), GREATEST_TITLE_WIN_TIED, greatestValues.at(i).at(GREATEST_TITLE_WIN_TIED));
 
-                    if (firstNameWritten) {
-                        greatestTitlesPlayers.at(i) += ", " + playerList->at(j).mName;
+                    if ((firstNameWritten) && (greatestTitlesPlayers != nullptr)) {
+                        greatestTitlesPlayers->at(i) += ", " + playerList->at(j).mName;
                     }
                 }
 
@@ -322,8 +394,8 @@ void findGreatestTitles(std::vector<Player>* playerList) {
                     playerList->at(j).setGreatestTitleState(greatest_title_items_t(i), GREATEST_TITLE_WIN, greatestValues.at(i).at(GREATEST_TITLE_WIN));
                 }
 
-                if (firstNameWritten == false) {
-                    greatestTitlesPlayers.at(i) = playerList->at(j).mName;
+                if ((firstNameWritten == false) && (greatestTitlesPlayers != nullptr)) {
+                    greatestTitlesPlayers->at(i) = playerList->at(j).mName;
                     firstNameWritten = true;
                 }
             }
@@ -359,6 +431,7 @@ void findRanks(std::vector<Player>* playerList) {
         playerScores.at(maxIndex) = 0; // Reset the found value to 0 to avoid selecting it again
     }
 }
+
 
 void setOptionalDungeonBonus(unsigned optionalID, Player* player) {
     switch(optionalID) {
@@ -504,6 +577,8 @@ void setOptionalSpawningGroundsBonus(unsigned optionalID, Player* player) {
     }
 }
 
+
+
 void greatestTitlesScoreSetupClean(void) {
     // Greatest title score definitions are setup in a matrix.
 
@@ -511,7 +586,6 @@ void greatestTitlesScoreSetupClean(void) {
 
     // Resize the matrix to match the "number of titles" x "number of state per title" (7x3)
     greatestValues.resize(NUMBER_OF_GREATEST_TITLES);
-    greatestTitlesPlayers.resize(NUMBER_OF_GREATEST_TITLES);
 
     for (unsigned int i = 0; i < NUMBER_OF_GREATEST_TITLES; ++i) {
         greatestValues.at(i).resize(NUMBER_OF_GREATEST_STATES);

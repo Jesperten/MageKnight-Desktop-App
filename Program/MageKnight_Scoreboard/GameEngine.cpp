@@ -1,8 +1,11 @@
 #include "GameEngine.h"
 #include "GameScoreSystem.h"
+#include "Dialog_UserAction.h"
 #include <math.h>
 
-// Constructor
+GameEngine* GameEngine::instance_ = nullptr;
+
+// Private Constructor (Singleton class)
 GameEngine::GameEngine() {
     // Clear the arrays by resizing to 0
     mMageKnight_Player.resize(0);
@@ -10,6 +13,7 @@ GameEngine::GameEngine() {
     mGameTimer.setTimer(0);
     mGameTimer.stopTimer();
 
+    mGreatestTitlesPlayers.resize(NUMBER_OF_GREATEST_TITLES);
     greatestTitlesScoreSetupClean();
 }
 
@@ -26,8 +30,7 @@ void GameEngine::on_mageKnightPlayerAdded(QString playerName, QString playerChar
 
     unsigned int nPlayers = unsigned(mMageKnight_Player.size()) + 1; // The new number of added players is to be increased by one
     newPlayer.mId = nPlayers; // Todo: the index should start from 0 to make it easier for use with std::vector
-    mMageKnight_Player.resize(nPlayers);
-    mMageKnight_Player.at(nPlayers-1) = newPlayer;
+    mMageKnight_Player.push_back(newPlayer);
 
     // Neat algorithm to find a new h-value such that the series gives equally and gradually finer
     // distributed integers from 0 to 360. (Works for all n, where 1 < n < 257, when n = 257 is the first duplicate value appears)
@@ -45,14 +48,16 @@ void GameEngine::on_mageKnightPlayerAdded(QString playerName, QString playerChar
     mMageKnight_Player.at(nPlayers-1).mPlayerColor = QColor::fromHsv(h, 200, 200, 255);
     findRanks(&mMageKnight_Player); // Update the initial ranking of the players
 
+    // todo: add all discovered cities to the new player (relevant only for late entrance players)
+
     emit newMageKnightPlayerListReady(mMageKnight_Player); // It is important that the array is send as a read-only (const) reference to improve speed (avoid copying data)
 }
 
 void GameEngine::on_newGameStarted() {
     mGameTimer.startTimer();
-    QObject::connect(&mGameTimer, SIGNAL(gameTimerUpdate()), this, SLOT(on_timerUpdate()));
+    QObject::connect(&mGameTimer, &GameTimer::gameTimerUpdate, this, &GameEngine::on_timerUpdate);
 
-    emit newMageKnightPlayerData(mMageKnight_Player, mGameTimer);
+    emit newMageKnightData(mMageKnight_Player, mMageKnight_Cities, mGreatestTitlesPlayers, mGameTimer);
 }
 
 void GameEngine::on_gameReset() {
@@ -75,30 +80,56 @@ void GameEngine::on_timerUpdate() {
         mMageKnight_Player.at(i).mTimeData[endPoint-1] = mGameTimer.mTicks;
     }
 
-    emit newMageKnightPlayerData(mMageKnight_Player, mGameTimer);
+    emit newMageKnightData(mMageKnight_Player, mMageKnight_Cities, mGreatestTitlesPlayers, mGameTimer);
 }
 
 void GameEngine::on_userActionDialogOpened() {
     // This slot is meant as a trigger to send constant references to the playerList and cityList to the recently opened userActionDialog
-    emit newPlayerAndCityData(mMageKnight_Player, mMageKnight_Cities);
+    emit userActionDialogData(mMageKnight_Player, mMageKnight_Cities);
 }
 
 void GameEngine::on_newUserAction(Action action) {
     // A user action has been completed and sent to the Game Engine.
     // The players and cities will be updated accordingly.
 
+    // In case that the reported action was a city attack, this most be handled specifically
+    if ((action.mMainActionID == ACTION_ID_CITY) && (mMageKnight_Cities.at(action.mCityID).mConquered == false)) {
+
+        updateCityStats(action, &mMageKnight_Cities.at(action.mCityID), &mMageKnight_Player.at(action.mPlayerID-1));
+
+        if (mMageKnight_Cities.at(action.mCityID).mMonstersRemaining == 0) {
+            mMageKnight_Cities.at(action.mCityID).mConquered = true;
+            findCityLeader(&mMageKnight_Cities.at(action.mCityID), &mMageKnight_Player);
+        }
+    }
+
     addPlayerAction(action, &mMageKnight_Player.at(action.mPlayerID-1)); // Add the action and all its properties to the player
-                                                                         // Update points from cities across all players
     updateBasicScores(&mMageKnight_Player);                              // Update the basic scores on all players
-    findGreatestTitles(&mMageKnight_Player);                             // Update Greatest titles across all players
+    findGreatestTitles(&mMageKnight_Player, &mGreatestTitlesPlayers);    // Update Greatest titles across all players
     updateFinalScores(&mMageKnight_Player);                              // Update the final scores across all players
     findRanks(&mMageKnight_Player);                                      // Update ranks across all players
-    emit newMageKnightPlayerData(mMageKnight_Player, mGameTimer);        // Needs to react on city data changes also...
+
+    emit newMageKnightData(mMageKnight_Player, mMageKnight_Cities, mGreatestTitlesPlayers, mGameTimer);
 }
 
 void GameEngine::on_newTestUserAction(Action action) {
+    // This slot is almost identical to "on_newUserAction", but is based on copies of the game data
+    // in order to only find temporary results, without changing the actual gamedata
+
     if (action.mPlayerID > 0) { // Safety to filter out any calls during the GUI setup
         std::vector<Player> tempPlayerList = mMageKnight_Player; // Create a copy of the entire list of players in order to calculate temporary results on the action.
+        std::vector<City> tempCityList = mMageKnight_Cities;     // Create a copy of the entire list of cities in order to calculate temporary results on the action.
+
+        // In case that the reported action was a city attack, this most be handled specifically
+        if ((action.mMainActionID == ACTION_ID_CITY) && (tempCityList.at(action.mCityID).mConquered == false)) {
+
+            updateCityStats(action, &tempCityList.at(action.mCityID), &tempPlayerList.at(action.mPlayerID-1));
+
+            if (tempCityList.at(action.mCityID).mMonstersRemaining == 0) {
+                tempCityList.at(action.mCityID).mConquered = true;
+                findCityLeader(&tempCityList.at(action.mCityID), &tempPlayerList);
+            }
+        }
 
         addPlayerAction(action, &tempPlayerList.at(action.mPlayerID-1));  // Add the action and all its properties to the player
                                                                           // Update points from cities across all players
@@ -112,90 +143,27 @@ void GameEngine::on_newTestUserAction(Action action) {
     }
 }
 
+void GameEngine::on_newCityDiscovered(City newCity) {
+    mMageKnight_Cities.push_back(newCity);
+    mMageKnight_Cities.back().mId = mMageKnight_Cities.size()-1;
 
-/*
-void GameEngine::updateCityStats(Action action) {
-    if (action.mMainActionID == ACTION_ID_CITY) {
-        unsigned int cityID = action.mCityID;
-        unsigned int playerID = action.mPlayerID - 1;
-        unsigned int monsterCount = action.mMonsters.size();
+    emit newMageKnightData(mMageKnight_Player, mMageKnight_Cities, mGreatestTitlesPlayers, mGameTimer);
 
-        for (unsigned int i = 0; i < action.mMonsters.size(); ++i) {
-            if (action.mMonsters.at(i).mRampaging) --monsterCount;
-        }
-
-        mMageKnight_Cities.at(cityID).mMonstersRemaining -= monsterCount; // Find the number of remaining monsters in the given city
-        mMageKnight_Player.at(playerID).mCityTokens.at(cityID) += monsterCount; // Assign the number of tokens in the city for the given player
-
-        if (mMageKnight_Cities.at(cityID).mMonstersRemaining == 0) {
-            mMageKnight_Cities.at(cityID).mConquered = true;
-            findCityLeader(cityID);
-        }
-
-        // updateCityList();
+    for(unsigned int i = 0; i < mMageKnight_Player.size(); i++) {
+        mMageKnight_Player.at(i).addNewCity();
     }
 }
-*/
-/*
-void GameEngine::findCityLeader(unsigned int cityID) {
-    unsigned int maxScore = 0;
-    unsigned int playerScore = 0;
-    bool tied = false;
-    std::vector <unsigned int> cityLeaderIDs;
-    QString cityOwner = "";
 
-    if (mMageKnight_Cities.at(cityID).mConquered) {
-        // Search through all players and determine the maxScore (number of tokens) and if it is tied between two or more players
-        for (unsigned int i = 0; i< mMageKnight_Player.size(); ++i) {
-            playerScore = mMageKnight_Player.at(i).mCityTokens.at(cityID);
-            if (playerScore > maxScore) {
-                maxScore = playerScore;
-                tied = false;
-            }
-            else if (playerScore == maxScore)
-                tied = true;
-        }
-
-        // Use the found maxscore to set the city relation status for all players
-        for (unsigned int i = 0; i< mMageKnight_Player.size(); ++i) {
-            playerScore = mMageKnight_Player.at(i).mCityTokens.at(cityID);
-
-            if (playerScore == maxScore) {
-                // Expand the list of city leader IDs by one
-                unsigned int nLeaders = cityLeaderIDs.size();
-                cityLeaderIDs.resize(nLeaders + 1);
-
-                // Add the current playerID to the city leader IDs list
-                cityLeaderIDs.at(nLeaders) = i;
-
-                if (tied)
-                    mMageKnight_Player.at(i).mCityRelations.at(cityID) = CITY_RELATION_IS_TIED_LEADER;
-                else
-                    mMageKnight_Player.at(i).mCityRelations.at(cityID) = CITY_RELATION_IS_LEADER;
-            }
-
-            else if (playerScore > 0)
-                mMageKnight_Player.at(i).mCityRelations.at(cityID) = CITY_RELATION_HAS_TOKENS;
-            else
-                mMageKnight_Player.at(i).mCityRelations.at(cityID) = CITY_RELATION_NONE;
-
-            mMageKnight_Player.at(i).updateScore();
-        }
-
-        if (tied) {
-            cityOwner = mMageKnight_Player.at(cityLeaderIDs.at(0)).mName;
-
-            for (unsigned int i = 1; i < cityLeaderIDs.size(); ++i) {
-                cityOwner += ", ";
-                cityOwner += mMageKnight_Player.at(cityLeaderIDs.at(i)).mName;
-            }
-            cityOwner += " (tied)";
-        }
-        else {
-            cityOwner = mMageKnight_Player.at(cityLeaderIDs.at(0)).mName;
-        }
-
-        mMageKnight_Cities.at(cityID).mCityOwner = cityOwner;
+void GameEngine::on_pausePlayToggle(void) {
+    if (mGameTimer.isTimerActive()) {
+        // Stop the timer and disable the "Enter User Action" button.
+        mGameTimer.stopTimer();
     }
+    else {
+        // Restart the timer and enable the "Enter User Action" button.
+        // The timer is restarted from 0 ms. Thus, up to 999 ms time tracking can be lost.
+        mGameTimer.startTimer();
+    }
+
+    emit gamePlayPauseState(mGameTimer.isTimerActive());
 }
-*/

@@ -8,6 +8,7 @@
 #include "Unit.h"
 
 typedef enum greatest_title_items_t {
+    TITLE_GREATEST,
     TITLE_GREATEST_KNOWLEDGE,
     TITLE_GREATEST_LOOT,
     TITLE_GREATEST_LEADER,
@@ -42,7 +43,7 @@ public:
     // Public methods
     void addMonster(Monster monster);
     void addUnit(Unit unit);
-    void setNumberOfCities(unsigned int cities);
+    void addNewCity(void);
     void setGreatestTitleState(greatest_title_items_t item, greatest_title_t state, int score);
 
     // Public members
