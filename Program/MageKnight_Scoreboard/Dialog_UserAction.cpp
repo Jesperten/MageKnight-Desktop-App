@@ -131,6 +131,7 @@ void Dialog_UserAction::ui_userActionSetupClean(void) {
 void Dialog_UserAction::acceptButtonControlCheck(void)
 {
     bool finalStatement = true;
+    QString buttonDisabled_toolTip = "";
 
     int comboPlayerListIndex = ui->comboBox_playerList->currentIndex();
     int comboActionListIndex = ui->comboBox_actionList->currentIndex();
@@ -140,11 +141,9 @@ void Dialog_UserAction::acceptButtonControlCheck(void)
     int reportedMonsters = ui->tableWidget_monsters->rowCount() - 1;
     int reportedNonRampagingMonsters = reportedMonsters;
 
-    for (int i = 1; i <= reportedMonsters; ++i)
-    {
+    for (int i = 1; i <= reportedMonsters; ++i) {
         QCheckBox *isRampagingCB = qobject_cast<QCheckBox*>(ui->tableWidget_monsters->cellWidget(i,3));
-        if (isRampagingCB->isChecked())
-        {
+        if (isRampagingCB->isChecked()) {
             --reportedNonRampagingMonsters;
         }
     }
@@ -152,62 +151,102 @@ void Dialog_UserAction::acceptButtonControlCheck(void)
     QString comboSuccessListText = ui->comboBox_successFail->currentText();
 
     // Disable the accept button if any of the three essential comboboxes have not been set
-    if (comboPlayerListIndex == 0)    finalStatement = false;
-    if (comboActionListIndex == 0)    finalStatement = false;
-    if ((comboSuccessListIndex == 0) && (comboSuccessListState))   finalStatement = false;
-
-    // If a user reports a successful attack on a rampaging monster, at least one monster must be reported
-    if ((comboActionListIndex == ACTION_ID_RAMPAGING_MONSTER) && (comboSuccessListText == "Success"))
-    {
-        if (reportedMonsters < 1) finalStatement = false;
+    if (comboPlayerListIndex == 0) {
+        finalStatement = false;
+        buttonDisabled_toolTip = "A player must be selected.";
     }
+    else if (comboActionListIndex == 0) {
+        finalStatement = false;
+        buttonDisabled_toolTip = "An action type must be selected.";
+    }
+    else if ((comboSuccessListIndex == 0) && (comboSuccessListState)) {
+        finalStatement = false;
+        buttonDisabled_toolTip = "Please specify whether the action was successful or a total disaster.";
+    }
+    if (finalStatement) {
+        switch (comboActionListIndex) {
+        case ACTION_ID_RAMPAGING_MONSTER:
+            if (reportedMonsters < 1) {
+                finalStatement = false;
+                buttonDisabled_toolTip = "At least one rampaging monster must be reported";
+            }
+            break;
 
-    // Reporting an assault on a city requires that the city is specified and this city is discovered and unconqored
-    if (comboActionListIndex == ACTION_ID_CITY)
-    {
-        // Check if a city is specified at all
-        if (comboOptionalListIndex > 0)
-        {
-            // Check the number of remaining monsters in the specified city
-            int monstersRemaining = int(mCityListCopy.at(unsigned(comboOptionalListIndex-1)).mMonstersRemaining);
-            if (monstersRemaining == 0) finalStatement = false;
-            if (monstersRemaining < reportedNonRampagingMonsters) finalStatement = false;
+        case ACTION_ID_CITY:
+            if (comboOptionalListIndex > 0) {
+                // Check the number of remaining monsters in the specified city
+                int monstersRemaining = int(mCityListCopy.at(unsigned(comboOptionalListIndex-1)).mMonstersRemaining);
+                if (monstersRemaining == 0) {
+                    finalStatement = false;
+                    buttonDisabled_toolTip = "Selected city is already conquered.";
+                }
+                else if (monstersRemaining < reportedNonRampagingMonsters) {
+                    finalStatement = false;
+                    buttonDisabled_toolTip = "Too many monsters reported on selected city";
+                }
+            }
+            else {
+                finalStatement = false;
+                buttonDisabled_toolTip = "Please specify, which city has been attacked.";
+            }
+            break;
+
+        case ACTION_ID_DUNGEON:
+        case ACTION_ID_LABYRINTH:
+        case ACTION_ID_MAZE:
+        case ACTION_ID_MONSTER_DEN:
+        case ACTION_ID_RUINS:
+        case ACTION_ID_SPAWNING_GROUNDS:
+            if ((comboOptionalListIndex == 0) && (comboSuccessListText == "Success")){
+                finalStatement = false;
+                buttonDisabled_toolTip = "Please select a reward.";
+            }
+            break;
+
+        default:
+            break;
         }
-        else
-        {
-            finalStatement = false;
+    }
+
+    if (finalStatement) {
+        // Check each reported monster that the type and special is specified
+        for (unsigned int i = 0; i<mplayerAction.mMonsters.size(); ++i) {
+            if (mplayerAction.mMonsters.at(i).mType == "Select Type") {
+                finalStatement = false;
+                buttonDisabled_toolTip = "Please specify Type on all reported monsters.";
+            }
+            else if (mplayerAction.mMonsters.at(i).mSpecial == "Select Special") {
+                finalStatement = false;
+                buttonDisabled_toolTip = "Please specify Special on all reported monsters.";
+            }
         }
     }
 
-    if ((comboActionListIndex == ACTION_ID_DUNGEON) ||
-        (comboActionListIndex == ACTION_ID_LABYRINTH) ||
-        (comboActionListIndex == ACTION_ID_MAZE) ||
-        (comboActionListIndex == ACTION_ID_MONSTER_DEN) ||
-        (comboActionListIndex == ACTION_ID_RUINS) ||
-        (comboActionListIndex == ACTION_ID_SPAWNING_GROUNDS))
-    {
-        // Check if no reward is selected at all
-        if (comboOptionalListIndex == 0) finalStatement = false;
-    }
-
-    // Check each reported monster that the type and special is specified
-    for (unsigned int i = 0; i<mplayerAction.mMonsters.size(); ++i)
-    {
-        if(mplayerAction.mMonsters.at(i).mType == "Select Type")       finalStatement = false;
-        if(mplayerAction.mMonsters.at(i).mSpecial == "Select Special") finalStatement = false;
-    }
-
-    for (unsigned int i = 0; i<mplayerAction.mUnits.size(); ++i)
-    {
-        if(mplayerAction.mUnits.at(i).mName == "Select Unit (0)") finalStatement = false;
+    if (finalStatement) {
+        // Check all recruited units
+        for (unsigned int i = 0; i < mplayerAction.mUnits.size(); ++i) {
+            if (mplayerAction.mUnits.at(i).mName == "Select Unit") {
+                finalStatement = false;
+                buttonDisabled_toolTip = "Please specify all units recruited.";
+            }
+        }
     }
 
     // Finally set the state of the accept button with respect to the finalStatement variable
     ui->pushButton_enterUserAction->setEnabled(finalStatement);
+    ui->pushButton_enterUserAction->setToolTip(buttonDisabled_toolTip);
+
+    if (finalStatement) {
+        ui->pushButton_enterUserAction->setToolTipDuration(-1);
+    }
+    else {
+        ui->pushButton_enterUserAction->setToolTipDuration(10000);
+    }
 }
 
 void Dialog_UserAction::setOptionalComboBox(int index) {
     ui->comboBox_optional->clear();
+    QString cityString;
 
     switch (index) {
     case ACTION_ID_TEXT: // No Action
@@ -228,11 +267,21 @@ void Dialog_UserAction::setOptionalComboBox(int index) {
         ui->comboBox_optional->addItem("Select City");
 
         // Change to list of revealed cities
-        for (unsigned int i = 0; i<mCityListCopy.size(); ++i) {
+        for (unsigned int i = 0; i < mCityListCopy.size(); ++i) {
+
+            cityString = mCityListCopy.at(i).mName;
+            if (mCityListCopy.at(i).mColor != "1337BiddybobFirkant") {
+                cityString += (" (" + mCityListCopy.at(i).mColor + ")");
+            }
+
+            //((cityList.at(i).mColor == "1337BiddybobFirkant") ? "" : cityList.at(i).mColor)
+
             if (mCityListCopy.at(i).mConquered == true)
-                ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " [Conquered]");
+                //ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " [Conquered]");
+                ui->comboBox_optional->addItem(cityString + " [Conquered]");
             else
-                ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " ["+ QString::number(mCityListCopy.at(i).mMonstersRemaining) +"]");
+                //ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " ["+ QString::number(mCityListCopy.at(i).mMonstersRemaining) +"]");
+                ui->comboBox_optional->addItem(cityString + " ["+ QString::number(mCityListCopy.at(i).mMonstersRemaining) +"]");
         }
         break;
 
@@ -304,8 +353,7 @@ void Dialog_UserAction::enableForm(bool enabled) {
     ui->pushButton_addUnit->setEnabled(enabled);
 }
 
-void Dialog_UserAction::defineStringLists(void)
-{
+void Dialog_UserAction::defineStringLists(void) {
     mActionList.resize(NUMBER_OF_ACTION_IDS);
     mActionList[ACTION_ID_TEXT]              = "Select Action";
     mActionList[ACTION_ID_BURNED_MONASTERY]  = "Burned Monastery";
@@ -379,8 +427,7 @@ void Dialog_UserAction::addMonster(void) {
     if (rows > 1) ui->pushButton_deleteMonster->setEnabled(true);
 }
 
-void Dialog_UserAction::removeMonster(void)
-{
+void Dialog_UserAction::removeMonster(void) {
     // The new number of rows in the monster table is increased by one
     int rows = ui->tableWidget_monsters->rowCount() - 1;
 
@@ -390,8 +437,7 @@ void Dialog_UserAction::removeMonster(void)
     if (rows <= 1) ui->pushButton_deleteMonster->setEnabled(false);
 }
 
-void Dialog_UserAction::addUnit(Unit unit)
-{
+void Dialog_UserAction::addUnit(Unit unit) {
     // The new number of rows in the monster table is increased by one
     int rows = ui->tableWidget_units->rowCount() + 1;
 
@@ -404,8 +450,7 @@ void Dialog_UserAction::addUnit(Unit unit)
     if (rows > 1) ui->pushButton_removeUnit->setEnabled(true);
 }
 
-void Dialog_UserAction::removeUnit(void)
-{
+void Dialog_UserAction::removeUnit(void) {
     // The new number of rows in the monster table is increased by one
     int rows = ui->tableWidget_units->rowCount() - 1;
 
@@ -597,6 +642,22 @@ void Dialog_UserAction::on_newTempPlayerData(const Player& player, const Player&
             QColor playerColor = player.mPlayerColor;
             ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
         }
+        else if ((i == SCORE_STAT_ID_AAC) && (deltaAAC > 0)) {
+            QColor playerColor = player.mPlayerColor;
+            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+        }
+        else if ((i == SCORE_STAT_ID_SPELL) && (deltaSpell > 0)) {
+            QColor playerColor = player.mPlayerColor;
+            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+        }
+        else if ((i == SCORE_STAT_ID_ARTIFACT) && (deltaArtifact > 0)) {
+            QColor playerColor = player.mPlayerColor;
+            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+        }
+        else if ((i == SCORE_STAT_ID_CRYSTALS) && (deltaCrystals > 0)) {
+            QColor playerColor = player.mPlayerColor;
+            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+        }
     }
 }
 
@@ -609,8 +670,7 @@ void Dialog_UserAction::on_pushButton_cancel_clicked() {
     this->reject();
 }
 
-void Dialog_UserAction::on_pushButton_addMonster_clicked()
-{
+void Dialog_UserAction::on_pushButton_addMonster_clicked() {
     addMonster(); // Adds a monster to the action monster list and displays it on the monster table
     acceptButtonControlCheck();
 
@@ -618,16 +678,14 @@ void Dialog_UserAction::on_pushButton_addMonster_clicked()
     mSoundEffects[i].play();
 }
 
-void Dialog_UserAction::on_pushButton_deleteMonster_clicked()
-{
+void Dialog_UserAction::on_pushButton_deleteMonster_clicked() {
     removeMonster(); // Adds a monster to the action monster list and displays it on the monster table
     emit newTestUserAction(mplayerAction);
     //updateResults();
     acceptButtonControlCheck();
 }
 
-void Dialog_UserAction::on_pushButton_addUnit_clicked()
-{
+void Dialog_UserAction::on_pushButton_addUnit_clicked() {
     Unit unit;
     addUnit(unit);
     acceptButtonControlCheck();
@@ -719,8 +777,7 @@ void Dialog_UserAction::on_comboBox_actionList_currentIndexChanged(int index) {
     emit newTestUserAction(mplayerAction);
 }
 
-void Dialog_UserAction::on_comboBox_optional_currentIndexChanged(int index)
-{
+void Dialog_UserAction::on_comboBox_optional_currentIndexChanged(int index) {
     mplayerAction.mOptionalID = unsigned(index);
 
     if ((ui->comboBox_actionList->currentIndex() == ACTION_ID_CITY) && (index > 0)) {
@@ -729,32 +786,26 @@ void Dialog_UserAction::on_comboBox_optional_currentIndexChanged(int index)
 
     acceptButtonControlCheck();
     emit newTestUserAction(mplayerAction);
-    //updateResults();
 }
 
-void Dialog_UserAction::on_comboBox_successFail_currentIndexChanged(const QString &arg1)
-{
+void Dialog_UserAction::on_comboBox_successFail_currentIndexChanged(const QString &arg1) {
     if      (arg1 == "Success") mplayerAction.mSuccessFail = true;
     else if (arg1 == "Fail")    mplayerAction.mSuccessFail = false;
     else                        mplayerAction.mSuccessFail = false;
 
     acceptButtonControlCheck();
     emit newTestUserAction(mplayerAction);
-    // updateResults();
 }
 
-void Dialog_UserAction::on_spinBox_woundCounts_valueChanged(int arg1)
-{
+void Dialog_UserAction::on_spinBox_woundCounts_valueChanged(int arg1) {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
     unsigned int availableWounds = mPlayerListCopy.at(playerIndex).mWounds;
 
-    if(-1 * int(availableWounds) > arg1)
-    {
+    if(-1 * int(availableWounds) > arg1) {
         mplayerAction.mWounds = int(availableWounds);
         ui->spinBox_woundCounts->setValue(-1 * int(availableWounds));
     }
-    else
-    {
+    else {
         mplayerAction.mWounds = arg1;
     }
 
@@ -763,91 +814,73 @@ void Dialog_UserAction::on_spinBox_woundCounts_valueChanged(int arg1)
     //updateResults();
 }
 
-void Dialog_UserAction::on_spinBox_addRep_valueChanged(int arg1)
-{
+void Dialog_UserAction::on_spinBox_addRep_valueChanged(int arg1) {
     mplayerAction.mAddRepStep = arg1;
 
     acceptButtonControlCheck();
     emit newTestUserAction(mplayerAction);
-    //updateResults();
 }
 
-void Dialog_UserAction::on_spinBox_addFame_valueChanged(int arg1)
-{
+void Dialog_UserAction::on_spinBox_addFame_valueChanged(int arg1) {
     mplayerAction.mAddFame = unsigned(arg1);
 
     acceptButtonControlCheck();
     emit newTestUserAction(mplayerAction);
-    //updateResults();
 }
 
-void Dialog_UserAction::on_spinBox_addCrystals_valueChanged(int arg1)
-{
+void Dialog_UserAction::on_spinBox_addCrystals_valueChanged(int arg1) {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
     int availableCrystals = int(mPlayerListCopy.at(playerIndex).mCrystals);
 
-    if ((availableCrystals + arg1) <= 0)
-    {
+    if ((availableCrystals + arg1) <= 0) {
         mplayerAction.mCrystals = -1 * availableCrystals;
         ui->spinBox_addCrystals->setValue(-1 * availableCrystals);
     }
-    else
-    {
+    else {
         mplayerAction.mCrystals = unsigned(arg1);
     }
 
     acceptButtonControlCheck();
     emit newTestUserAction(mplayerAction);
-    //updateResults();
 }
 
-void Dialog_UserAction::on_spinBox_thrownArtifacts_valueChanged(int arg1)
-{
+void Dialog_UserAction::on_spinBox_thrownArtifacts_valueChanged(int arg1) {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
     unsigned int availableArtifacts = mPlayerListCopy.at(playerIndex).mArtifacts;
 
-    if(int(availableArtifacts) < arg1)
-    {
+    if(int(availableArtifacts) < arg1) {
         mplayerAction.mThrownArtifacts = availableArtifacts;
         ui->spinBox_thrownArtifacts->setValue(int(availableArtifacts));
     }
-    else
-    {
+    else {
         mplayerAction.mThrownArtifacts = unsigned(arg1);
     }
 
     acceptButtonControlCheck();
     emit newTestUserAction(mplayerAction);
-    //updateResults();
 }
 
-void Dialog_UserAction::on_spinBox_thrownAAC_valueChanged(int arg1)
-{
+void Dialog_UserAction::on_spinBox_thrownAAC_valueChanged(int arg1) {
     unsigned int playerIndex = mplayerAction.mPlayerID - 1;
     unsigned int availableAAC = mPlayerListCopy.at(playerIndex).mAActionCards;
 
-    if (int(availableAAC) < arg1)
-    {
+    if (int(availableAAC) < arg1) {
         mplayerAction.mThrownAAC = availableAAC;
         ui->spinBox_thrownAAC->setValue(int(availableAAC));
     }
-    else
-    {
+    else {
         mplayerAction.mThrownAAC = unsigned(arg1);
     }
 
 
     acceptButtonControlCheck();
     emit newTestUserAction(mplayerAction);
-    //updateResults();
 }
 
-void Dialog_UserAction::monsterTableWidget_valueChanged(void)
-{
+void Dialog_UserAction::monsterTableWidget_valueChanged(void) {
     int nMonsters = ui->tableWidget_monsters->rowCount()-1;
 
-    for (int i = 1; i<=nMonsters; ++i)
-    {
+    for (int i = 1; i<=nMonsters; ++i) {
         QComboBox *typeCB = qobject_cast<QComboBox*>(ui->tableWidget_monsters->cellWidget(i, 0));
         QSpinBox *fameSB = qobject_cast<QSpinBox*>(ui->tableWidget_monsters->cellWidget(i, 1));
         QComboBox *specialCB = qobject_cast<QComboBox*>(ui->tableWidget_monsters->cellWidget(i, 2));
@@ -855,23 +888,21 @@ void Dialog_UserAction::monsterTableWidget_valueChanged(void)
 
         QString typeText = typeCB->currentText();
 
-        if (typeText == "Draconum" || typeText == "Marauding Orc")
-        {
+        if (typeText == "Draconum" || typeText == "Marauding Orc") {
             // When the specified action is Rampaging monster, the specified Orcs and/or Draconum can only be Rampaging
             // Thus, disable the checkbox control and set the state to checked = true.
-            if (ui->comboBox_actionList->currentIndex() == ACTION_ID_RAMPAGING_MONSTER)
-            {
+            if (ui->comboBox_actionList->currentIndex() == ACTION_ID_RAMPAGING_MONSTER) {
                 isRampagingCB->setEnabled(false);
                 isRampagingCB->setChecked(true);
 
             }
-            else // For any other action, the checkbox is enabled for editing
-            {
+            else {
+                // For any other action, the checkbox is enabled for editing
                 isRampagingCB->setEnabled(true);
             }
         }
-        else // When the specified monster is any other type than Orcs and Draconum, then disable and uncheck the checkbox
-        {
+        else {
+            // When the specified monster is any other type than Orcs and Draconum, then disable and uncheck the checkbox
             isRampagingCB->setEnabled(false);
             isRampagingCB->setChecked(false);
         }
@@ -888,15 +919,12 @@ void Dialog_UserAction::monsterTableWidget_valueChanged(void)
 
     acceptButtonControlCheck();
     emit newTestUserAction(mplayerAction);
-    //updateResults();
 }
 
-void Dialog_UserAction::unitTableWidget_valueChanged(void)
-{
+void Dialog_UserAction::unitTableWidget_valueChanged(void) {
     int nUnits = ui->tableWidget_units->rowCount()-1;
 
-    for (int i = 0; i<nUnits; ++i)
-    {
+    for (int i = 0; i<nUnits; ++i) {
         QComboBox *typeCB = qobject_cast<QComboBox*>(ui->tableWidget_units->cellWidget(i+1,0));
         QCheckBox *woundedCB = qobject_cast<QCheckBox*>(ui->tableWidget_units->cellWidget(i+1,1));
 
@@ -905,12 +933,10 @@ void Dialog_UserAction::unitTableWidget_valueChanged(void)
 
         mplayerAction.mUnits.at(unsigned(i)).mName = typeText;
 
-        if (typeText.at(typeText.length()-2).isDigit())
-        {
+        if (typeText.at(typeText.length()-2).isDigit()) {
             mplayerAction.mUnits.at(unsigned(i)).mLevel = unsigned(typeText.at(typeText.length()-2).digitValue());
         }
-        else
-        {
+        else {
             mplayerAction.mUnits.at(unsigned(i)).mLevel = 0;
         }
 
@@ -919,5 +945,4 @@ void Dialog_UserAction::unitTableWidget_valueChanged(void)
 
     acceptButtonControlCheck();
     emit newTestUserAction(mplayerAction);
-    //updateResults();
 }

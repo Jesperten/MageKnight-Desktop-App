@@ -156,17 +156,6 @@ border-image:  url(:/images/Image_Background_Start);
      <property name="spacing">
       <number>10</number>
      </property>
-     <item row="0" column="0" rowspan="3">
-      <widget class="QTableWidget" name="tableWidget_listOfPlayers">
-       <property name="styleSheet">
-        <string notr="true">QTableWidget#tableWidget_listOfPlayers{
-    background-color: rgb(0, 0, 0,20%);
-	color: rgb(190, 157, 56);
-	font: 75 10pt &quot;MS Shell Dlg 2&quot;;
-}</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="2">
       <widget class="QWidget" name="widget_newPlayer" native="true">
        <property name="minimumSize">
@@ -425,39 +414,7 @@ border: 1px solid white;
        </layout>
       </widget>
      </item>
-     <item row="0" column="3">
-      <widget class="QFrame" name="frameCharacter">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>139</width>
-         <height>181</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>139</width>
-         <height>181</height>
-        </size>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(0, 0, 0, 20%);
-border: 1px solid white;</string>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Raised</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" colspan="4">
+     <item row="3" column="0" colspan="4">
       <widget class="QWidget" name="widget_pushButtons" native="true">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <property name="spacing">
@@ -542,6 +499,38 @@ border: 1px solid white;</string>
        </layout>
       </widget>
      </item>
+     <item row="0" column="3">
+      <widget class="QFrame" name="frameCharacter">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>139</width>
+         <height>181</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>139</width>
+         <height>181</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(0, 0, 0, 20%);
+border: 1px solid white;</string>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="2" colspan="2">
       <widget class="QTextBrowser" name="textBrowser_characterDescription">
        <property name="styleSheet">
@@ -549,6 +538,120 @@ border: 1px solid white;</string>
 border: 1px solid white;</string>
        </property>
       </widget>
+     </item>
+     <item row="0" column="0" rowspan="2" colspan="2">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QTableWidget" name="tableWidget_listOfPlayers">
+         <property name="styleSheet">
+          <string notr="true">QTableWidget#tableWidget_listOfPlayers{
+    background-color: rgb(0, 0, 0,20%);
+	color: rgb(190, 157, 56);
+	font: 75 10pt &quot;MS Shell Dlg 2&quot;;
+}</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <property name="topMargin">
+          <number>10</number>
+         </property>
+         <item row="1" column="0">
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="1" column="3">
+          <widget class="QSpinBox" name="spinBox_VolkareLevel"/>
+         </item>
+         <item row="0" column="3">
+          <widget class="QLabel" name="label_3">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(255, 255, 255);</string>
+           </property>
+           <property name="text">
+            <string>Level  </string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4">
+          <widget class="QLabel" name="label_4">
+           <property name="font">
+            <font>
+             <family>MS Shell Dlg 2</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(255, 255, 255);</string>
+           </property>
+           <property name="text">
+            <string>Lost Legion size:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QCheckBox" name="checkBox_Volkare">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4">
+          <widget class="QSpinBox" name="spinBox_VolkareLegion"/>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_GeneralVolkare">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="toolTip">
+            <string notr="true"/>
+           </property>
+           <property name="toolTipDuration">
+            <number>-1</number>
+           </property>
+           <property name="whatsThis">
+            <string/>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(255, 255, 255);
+background-color: rgba(0, 0, 0, 30);
+</string>
+           </property>
+           <property name="text">
+            <string>General Volkare</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>

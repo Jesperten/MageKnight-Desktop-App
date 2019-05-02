@@ -87,6 +87,7 @@ private:
 
     unsigned long mGraphTimerMaxRange = 60;
     unsigned int mGraphPointMaxRange = 25;
+    int mGraphPointMinRange = -1;
 
     QString mStyle_PushButton_normal   = " QPushButton {border-image: url(:/images/Image_PushButton_Normal);   font: 75 italic 14pt 'Cambria'; color: rgb(72, 52, 24) }";
     QString mStyle_PushButton_pressed  = " QPushButton {border-image: url(:/images/Image_PushButton_Pressed);  font: 75 italic 14pt 'Cambria'; color: rgb(72, 52, 24) }";

@@ -148,7 +148,7 @@ void Window_MainBoard::updateCityList(const std::vector<City>& cityList) {
             cityStats.clear();
 
             cityStats << cityList.at(i).mName
-                      << cityList.at(i).mColor
+                      << ((cityList.at(i).mColor == "1337BiddybobFirkant") ? "" : cityList.at(i).mColor)
                       << QString::number(cityList.at(i).mLevel)
                       << QString::number(cityList.at(i).mMonstersRemaining) + "(" + QString::number(cityList.at(i).mMonsters) + ")"
                       << cityList.at(i).mCityOwner;
@@ -280,7 +280,7 @@ void Window_MainBoard::graphWidgetSetupClean(void) {
 
     ui->customPlot->setBackground(QBrush(QColor(0, 0, 0, 192)));
     ui->customPlot->xAxis->setRange(0, mGraphTimerMaxRange);
-    ui->customPlot->yAxis->setRange(-1, mGraphPointMaxRange);
+    ui->customPlot->yAxis->setRange(mGraphPointMinRange, mGraphPointMaxRange);
 
     ui->customPlot->xAxis->setBasePen(QPen(plotAxisColor));
     ui->customPlot->xAxis->setTickLabelColor(plotAxisColor);
@@ -309,6 +309,8 @@ void Window_MainBoard::on_newMageKnightData(const std::vector<Player>& playerLis
     QString buttonText = "Play/Pause Game\n Game Time: ";
 
     int Nplayers = playerList.size();
+    int maxScore = 0;
+    int minScore = 0;
 
     unsigned int hours   = gameTimer.mTicks/3600;
     unsigned int minutes = (gameTimer.mTicks - hours*3600)/60;
@@ -340,8 +342,28 @@ void Window_MainBoard::on_newMageKnightData(const std::vector<Player>& playerLis
 
     // Plot the player data on the customplot graphs.
     for (int i = 0; i < Nplayers; ++i) {
+
+        if (playerList.at(i).mScore > maxScore) {
+            maxScore = playerList.at(i).mScore;
+        }
+
+        else if (playerList.at(i).mScore < minScore) {
+            minScore = playerList.at(i).mScore;
+        }
+
         ui->customPlot->graph(int(i))->setData(playerList.at(i).mTimeData, playerList.at(i).mPointData);
     }
+
+    if((unsigned int)maxScore > mGraphPointMaxRange)
+        mGraphPointMaxRange = mGraphPointMaxRange * 1.5;
+
+    if (minScore <= mGraphPointMinRange)
+        mGraphPointMinRange = minScore - 10 - (minScore%10);
+    // Keep the negative minimum point value to continue displaying the entire graph
+    //else
+    //    mGraphPointMinRange = -1;
+
+    ui->customPlot->yAxis->setRange(mGraphPointMinRange, mGraphPointMaxRange);
 
     ui->customPlot->replot();
 

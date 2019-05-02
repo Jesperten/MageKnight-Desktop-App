@@ -16,6 +16,12 @@ Dialog_StartMenu::Dialog_StartMenu(QWidget *parent) : QDialog(parent), ui(new Ui
 
     // Set initial index on the stacked widget
     ui->stackedWidget->setCurrentIndex(0);
+
+    ui->label_GeneralVolkare->setToolTip("<font color='black'>Not much is known about Volkare, the High Priest of Høxies Kræstendom. Whether he is good or bad, or whether he follows higher goals or his own personal agenda</font>");
+    ui->label_GeneralVolkare->setToolTipDuration(15000);
+
+    Volkare.mColor = "1337BiddybobFirkant";
+    Volkare.mName = "Volkare";
 }
 
 Dialog_StartMenu::~Dialog_StartMenu() {
@@ -51,6 +57,7 @@ void Dialog_StartMenu::on_pushButton_newGame_clicked() {
     ui_newGameSetupClean(); // Create a clean view for the "New Game" menu
     ui->stackedWidget->setCurrentIndex(1); // Go to the "New Game" menu view
 
+    /*
     // Test purpose only (for faster game start)
     emit playerAdded("Lars", "Arythea");
     emit playerAdded("John", "Braevelar");
@@ -58,6 +65,7 @@ void Dialog_StartMenu::on_pushButton_newGame_clicked() {
     emit playerAdded("Bent", "Wolfhawk");
     emit playerAdded("Finn", "Tovak");
     emit playerAdded("Mark", "Norowas");
+    */
 }
 
 void Dialog_StartMenu::on_pushButton_loadGame_clicked() {
@@ -76,7 +84,7 @@ void Dialog_StartMenu::on_pushButton_returnToStart_clicked() {
 }
 
 void Dialog_StartMenu::on_pushButton_startGame_clicked() {
-    emit startNewGame();
+    emit startNewGame(ui->checkBox_Volkare->isChecked(), Volkare);
     this->accept();
 }
 
@@ -167,18 +175,50 @@ void Dialog_StartMenu::ui_newGameSetupClean() {
     ui->tableWidget_listOfPlayers->setFocusPolicy(Qt::NoFocus);
 
     ui->tableWidget_listOfPlayers->resizeColumnsToContents();
-
     ui->lineEdit_playerName->setPlaceholderText("Name");
-
     ui->textBrowser_characterDescription->setText("");
-
+    ui->checkBox_Volkare->setChecked(true);
     startButtonControlCheck();
 }
 
 void Dialog_StartMenu::startButtonControlCheck() {
     // Check the setup status before enabling the "Start Game" Button
-    if (ui->tableWidget_listOfPlayers->rowCount() > 0)
-        ui->pushButton_startGame->setEnabled(true);
-    else
-        ui->pushButton_startGame->setEnabled(false);
+    bool finalStatement = true;
+    QString button_toolTip = "";
+
+    if (ui->tableWidget_listOfPlayers->rowCount() == 0) {
+        finalStatement = false;
+        button_toolTip = "Minimum one MageKnight must enter the forsaken lands before the journey can begin.";
+    }
+    else if ((ui->checkBox_Volkare->isChecked() == true) && ((ui->spinBox_VolkareLegion->value() == 0) || (ui->spinBox_VolkareLevel->value() == 0))) {
+        finalStatement = false;
+        button_toolTip = "Volkare Level and Lost Legion count must be specified before the game can begin.";
+    }
+
+    ui->pushButton_startGame->setEnabled(finalStatement);
+
+
+    ui->pushButton_startGame->setToolTip(button_toolTip);
+
+    if (button_toolTip != "") {
+        ui->pushButton_startGame->setToolTipDuration(10000);
+    }
+    else {
+        ui->pushButton_startGame->setToolTipDuration(-1);
+    }
+}
+
+void Dialog_StartMenu::on_checkBox_Volkare_clicked() {
+    startButtonControlCheck();
+}
+
+void Dialog_StartMenu::on_spinBox_VolkareLevel_valueChanged(int arg1) {
+    Volkare.mLevel = arg1;
+    startButtonControlCheck();
+}
+
+void Dialog_StartMenu::on_spinBox_VolkareLegion_valueChanged(int arg1) {
+    Volkare.mMonsters = arg1;
+    Volkare.mMonstersRemaining = arg1;
+    startButtonControlCheck();
 }

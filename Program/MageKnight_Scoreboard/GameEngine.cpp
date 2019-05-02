@@ -53,9 +53,13 @@ void GameEngine::on_mageKnightPlayerAdded(QString playerName, QString playerChar
     emit newMageKnightPlayerListReady(mMageKnight_Player); // It is important that the array is send as a read-only (const) reference to improve speed (avoid copying data)
 }
 
-void GameEngine::on_newGameStarted() {
+void GameEngine::on_newGameStarted(bool Volkare_isPresent, City Volkare) {
     mGameTimer.startTimer();
     QObject::connect(&mGameTimer, &GameTimer::gameTimerUpdate, this, &GameEngine::on_timerUpdate);
+
+    if (Volkare_isPresent) {
+        on_newCityDiscovered(Volkare);
+    }
 
     emit newMageKnightData(mMageKnight_Player, mMageKnight_Cities, mGreatestTitlesPlayers, mGameTimer);
 }
@@ -101,6 +105,10 @@ void GameEngine::on_newUserAction(Action action) {
             mMageKnight_Cities.at(action.mCityID).mConquered = true;
             findCityLeader(&mMageKnight_Cities.at(action.mCityID), &mMageKnight_Player);
         }
+
+        if (mMageKnight_Cities.at(action.mCityID).mColor == "1337BiddybobFirkant") {
+            action.mAddRepStep++; // Hack to remove the -1 rep that is given by default when attacking a city
+        }
     }
 
     addPlayerAction(action, &mMageKnight_Player.at(action.mPlayerID-1)); // Add the action and all its properties to the player
@@ -120,23 +128,33 @@ void GameEngine::on_newTestUserAction(Action action) {
         std::vector<Player> tempPlayerList = mMageKnight_Player; // Create a copy of the entire list of players in order to calculate temporary results on the action.
         std::vector<City> tempCityList = mMageKnight_Cities;     // Create a copy of the entire list of cities in order to calculate temporary results on the action.
 
-        // In case that the reported action was a city attack, this most be handled specifically
-        if ((action.mMainActionID == ACTION_ID_CITY) && (tempCityList.at(action.mCityID).mConquered == false)) {
+        // In case that the reported action was a city attack, this must be handled specifically
+        if (tempCityList.size() > 0) {
+            if (action.mMainActionID == ACTION_ID_CITY) {
+                if (tempCityList.at(action.mCityID).mConquered == false) {
 
-            updateCityStats(action, &tempCityList.at(action.mCityID), &tempPlayerList.at(action.mPlayerID-1));
+                    updateCityStats(action, &tempCityList.at(action.mCityID), &tempPlayerList.at(action.mPlayerID-1));
 
-            if (tempCityList.at(action.mCityID).mMonstersRemaining == 0) {
-                tempCityList.at(action.mCityID).mConquered = true;
-                findCityLeader(&tempCityList.at(action.mCityID), &tempPlayerList);
+                    if (tempCityList.at(action.mCityID).mMonstersRemaining == 0) {
+                        tempCityList.at(action.mCityID).mConquered = true;
+                        findCityLeader(&tempCityList.at(action.mCityID), &tempPlayerList);
+                    }
+                }
+
+                if (mMageKnight_Cities.at(action.mCityID).mColor == "1337BiddybobFirkant") {
+                    action.mAddRepStep++; // Hack to remove the -1 rep that is given by default when attacking a city
+                }
             }
         }
 
         addPlayerAction(action, &tempPlayerList.at(action.mPlayerID-1));  // Add the action and all its properties to the player
-                                                                          // Update points from cities across all players
         updateBasicScores(&tempPlayerList);                               // Update the basic scores on all players
         findGreatestTitles(&tempPlayerList);                              // Update Greatest titles across all players
         updateFinalScores(&tempPlayerList);                               // Update the final scores across all players
         findRanks(&tempPlayerList);                                       // Update ranks across all players
+
+        // Todo: Check action validity here, and send an accepted bool via the newTempPlayerData signal
+        // bool actionAccepted = checkAction(action);
 
         // Send the temporaty and the original player for simpler comparison
         emit newTempPlayerData(mMageKnight_Player.at(action.mPlayerID-1), tempPlayerList.at(action.mPlayerID-1));

@@ -404,19 +404,29 @@ void findGreatestTitles(std::vector<Player>* playerList, std::vector<QString>* g
 }
 
 void findRanks(std::vector<Player>* playerList) {
-    unsigned int maxValue;
+    int maxValue;
+    int minValue = 0;
     unsigned int maxIndex;
 
     // Create a temporary list of the player scores which can be manipulated without affecting the actual scores
-    std::vector<unsigned int> playerScores(playerList->size());
+    std::vector<int> playerScores(playerList->size());
 
-    // Assign the player scores to the list
+    // Assign the player scores to the list and find the minimum score
     for (unsigned int i = 0; i < playerList->size(); ++i) {
-        playerScores.at(i) = playerList->at(i).mScore + 1; // Plus one is a small trick to ignore values set to 0 in the sorting algorithm
+        playerScores.at(i) = playerList->at(i).mScore;
+
+        if (playerScores.at(i) < minValue) {
+            minValue = playerScores.at(i);
+        }
     }
 
+    // Find the order/rank of all players by finding the max score
     for (unsigned int i = 0; i < playerList->size(); ++i) {
-        maxValue = 0;
+
+        // It is important that the init value of maxValue is lower than the found minimum value of all players
+        // In this way, all player scores will be found through the loop, as all scores are higher than the init value.
+        //maxValue = (minValue <= 0) ? (minValue - 1) : 0; // Set maxValue init value to 0 or minValue if this is lower than 1
+        maxValue = minValue - 1;
         maxIndex = 0;
 
         for (unsigned int j = 0; j < playerList->size(); j++) {
@@ -427,8 +437,10 @@ void findRanks(std::vector<Player>* playerList) {
         }
 
         // Set the rank to the player with the found index
+        // and then set the value below the minimum (init value of maxValue)
+        // to avoid choosing this value again in the sorting algorithm
         playerList->at(maxIndex).mRank = i+1; // Best rank is #1
-        playerScores.at(maxIndex) = 0; // Reset the found value to 0 to avoid selecting it again
+        playerScores.at(maxIndex) = minValue - 1;
     }
 }
 

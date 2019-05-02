@@ -33,7 +33,7 @@ signals:
 
 public slots:
     void on_mageKnightPlayerAdded(QString playerName, QString playerCharacter);
-    void on_newGameStarted();
+    void on_newGameStarted(bool Volkare_isPresent, City Volkare);
     void on_gameReset();
     void on_timerUpdate();
     void on_userActionDialogOpened();
