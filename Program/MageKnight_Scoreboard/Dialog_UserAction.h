@@ -89,7 +89,7 @@ private:
     std::vector<QString> mOptionalListRuins;
     std::vector<QString> mOptionalListSpawningGrounds;
 
-    QSoundEffect mSoundEffects[8];
+    QSoundEffect mSoundEffects[20];
 
     std::vector<Player> mPlayerListCopy; // List of player objects (resized later)
     std::vector<City> mCityListCopy;     // List of City objects (resized later)

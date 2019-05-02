@@ -8,6 +8,18 @@
         <file alias="Sound6">Misc/Sounds/sound6.wav</file>
         <file alias="Sound7">Misc/Sounds/sound7.wav</file>
         <file alias="Sound8">Misc/Sounds/sound8.wav</file>
+        <file alias="Sound9">Misc/Sounds/sound9.wav</file>
+        <file alias="Sound10">Misc/Sounds/sound10.wav</file>
+        <file alias="Sound11">Misc/Sounds/sound11.wav</file>
+        <file alias="Sound12">Misc/Sounds/sound12.wav</file>
+        <file alias="Sound13">Misc/Sounds/Sound13.wav</file>
+        <file alias="Sound14">Misc/Sounds/sound14.wav</file>
+        <file alias="Sound15">Misc/Sounds/sound15.wav</file>
+        <file alias="Sound16">Misc/Sounds/sound16.wav</file>
+        <file alias="Sound17">Misc/Sounds/sound17.wav</file>
+        <file alias="Sound18">Misc/Sounds/Sound18.wav</file>
+        <file alias="Sound19">Misc/Sounds/Sound19.wav</file>
+        <file alias="Sound20">Misc/Sounds/Sound20.wav</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="Image_Background_Action">Misc/Images/Background_Action.jpg</file>

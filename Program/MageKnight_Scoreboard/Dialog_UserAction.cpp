@@ -25,6 +25,18 @@ Dialog_UserAction::Dialog_UserAction(QWidget *parent) : QDialog(parent), ui(new 
     mSoundEffects[5].setSource(QUrl("qrc:/sounds/Sound6"));
     mSoundEffects[6].setSource(QUrl("qrc:/sounds/Sound7"));
     mSoundEffects[7].setSource(QUrl("qrc:/sounds/Sound8"));
+    mSoundEffects[8].setSource(QUrl("qrc:/sounds/Sound9"));
+    mSoundEffects[9].setSource(QUrl("qrc:/sounds/Sound10"));
+    mSoundEffects[10].setSource(QUrl("qrc:/sounds/Sound11"));
+    mSoundEffects[11].setSource(QUrl("qrc:/sounds/Sound12"));
+    mSoundEffects[12].setSource(QUrl("qrc:/sounds/Sound13"));
+    mSoundEffects[13].setSource(QUrl("qrc:/sounds/Sound14"));
+    mSoundEffects[14].setSource(QUrl("qrc:/sounds/Sound15"));
+    mSoundEffects[15].setSource(QUrl("qrc:/sounds/Sound16"));
+    mSoundEffects[16].setSource(QUrl("qrc:/sounds/Sound17"));
+    mSoundEffects[17].setSource(QUrl("qrc:/sounds/Sound18"));
+    mSoundEffects[18].setSource(QUrl("qrc:/sounds/Sound19"));
+    mSoundEffects[19].setSource(QUrl("qrc:/sounds/Sound20"));
 
     connect(gameEngine, &GameEngine::newMageKnightData, this, &Dialog_UserAction::on_newPlayerAndCityData );
 
@@ -128,8 +140,7 @@ void Dialog_UserAction::ui_userActionSetupClean(void) {
     on_comboBox_playerList_currentIndexChanged(0);
 }
 
-void Dialog_UserAction::acceptButtonControlCheck(void)
-{
+void Dialog_UserAction::acceptButtonControlCheck(void) {
     bool finalStatement = true;
     QString buttonDisabled_toolTip = "";
 
@@ -674,7 +685,7 @@ void Dialog_UserAction::on_pushButton_addMonster_clicked() {
     addMonster(); // Adds a monster to the action monster list and displays it on the monster table
     acceptButtonControlCheck();
 
-    unsigned int i = rand() % 8;
+    unsigned int i = rand() % 20;
     mSoundEffects[i].play();
 }
 
