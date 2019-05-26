@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
     QApplication::setWindowIcon(QIcon(":/images/MageKnightLogo.jpg"));
     Window_MainBoard mainBoard;
     Dialog_StartMenu startMenu;
+    startMenu.setWindowFlags(Qt::FramelessWindowHint);
 
     const GameEngine* gameEngine = GameEngine::instance(); // Const pointer to the Singleton instance of the GameEngine class (global object)
 

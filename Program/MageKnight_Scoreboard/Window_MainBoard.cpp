@@ -1,5 +1,3 @@
-#include <vector>
-#include <QVector>
 #include "ui_Window_MainBoard.h"
 #include "Window_MainBoard.h"
 #include "Player.h"
@@ -19,6 +17,27 @@ Window_MainBoard::Window_MainBoard(QWidget *parent) : QMainWindow(parent), ui(ne
     cityTableSetupClean();
     greatestTitleTableSetupClean();
     graphWidgetSetupClean();
+
+    mSoundEffects[ 0].setSource(QUrl("qrc:/sounds/Sound1" ));
+    mSoundEffects[ 1].setSource(QUrl("qrc:/sounds/Sound2" ));
+    mSoundEffects[ 2].setSource(QUrl("qrc:/sounds/Sound3" ));
+    mSoundEffects[ 3].setSource(QUrl("qrc:/sounds/Sound4" ));
+    mSoundEffects[ 4].setSource(QUrl("qrc:/sounds/Sound5" ));
+    mSoundEffects[ 5].setSource(QUrl("qrc:/sounds/Sound6" ));
+    mSoundEffects[ 6].setSource(QUrl("qrc:/sounds/Sound7" ));
+    mSoundEffects[ 7].setSource(QUrl("qrc:/sounds/Sound8" ));
+    mSoundEffects[ 8].setSource(QUrl("qrc:/sounds/Sound9" ));
+    mSoundEffects[ 9].setSource(QUrl("qrc:/sounds/Sound10"));
+    mSoundEffects[10].setSource(QUrl("qrc:/sounds/Sound11"));
+    mSoundEffects[11].setSource(QUrl("qrc:/sounds/Sound12"));
+    mSoundEffects[12].setSource(QUrl("qrc:/sounds/Sound13"));
+    mSoundEffects[13].setSource(QUrl("qrc:/sounds/Sound14"));
+    mSoundEffects[14].setSource(QUrl("qrc:/sounds/Sound15"));
+    mSoundEffects[15].setSource(QUrl("qrc:/sounds/Sound16"));
+    mSoundEffects[16].setSource(QUrl("qrc:/sounds/Sound17"));
+    mSoundEffects[17].setSource(QUrl("qrc:/sounds/Sound18"));
+    mSoundEffects[18].setSource(QUrl("qrc:/sounds/Sound19"));
+    mSoundEffects[19].setSource(QUrl("qrc:/sounds/Sound20"));
 }
 
 Window_MainBoard::~Window_MainBoard() {
@@ -403,6 +422,7 @@ void Window_MainBoard::on_gamePlayPauseState(bool gameActive) {
 
 void Window_MainBoard::on_pushButton_endGame_clicked() {
     Dialog_EndGame sureDialog(this);
+    sureDialog.setWindowFlags(Qt::FramelessWindowHint);
 
     if(sureDialog.exec() == QDialog::Accepted) {
         // Todo: Send Endgame signal to GameEngine??
@@ -411,8 +431,10 @@ void Window_MainBoard::on_pushButton_endGame_clicked() {
 }
 
 void Window_MainBoard::on_pushButton_enterUserAction_clicked() {
-    Dialog_UserAction actionDialog(this);
+    Dialog_UserAction actionDialog(this, mSoundEffects);
     emit userActionDialogOpened(); // Request for player and city data from gameEngine
+    //actionDialog.setModal(true);
+    //actionDialog.setWindowFlags(Qt::FramelessWindowHint);
     actionDialog.exec(); // Application is stalled here untill the dialog is done
 }
 
@@ -422,6 +444,7 @@ void Window_MainBoard::on_pushButton_playPauseGame_clicked() {
 
 void Window_MainBoard::on_pushButton_cityDiscovered_clicked() {
     Dialog_AddCity cityDialog(this);
+    cityDialog.setWindowFlags(Qt::FramelessWindowHint);
     cityDialog.exec();
 }
 

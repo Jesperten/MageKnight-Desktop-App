@@ -113,16 +113,14 @@ void addPlayerAction(Action playerAction, Player* player) {
     }
 
     // Add all the additional parts from the action (achieved in other ways than from the basic action itself)
+    player->mAActionCards += playerAction.mAddAAC;
+    player->mArtifacts    += playerAction.mAddArtifacts;
+    player->mCrystals     += playerAction.mAddCrystals;
     player->mFame         += playerAction.mAddFame;
     tempRepStep           += playerAction.mAddRepStep;
-    player->mAActionCards += playerAction.mAddAAC;
     player->mSpellCards   += playerAction.mAddSpells;
-    player->mCrystals     += playerAction.mCrystals;
     player->mWounds       += playerAction.mWounds;
 
-    // Thrown cards are taken care of here
-    player->mAActionCards -= playerAction.mThrownAAC;
-    player->mArtifacts -= playerAction.mThrownArtifacts;
 
     // The monsters killed during the action give fame and reputation as follows
     for (unsigned int i = 0; i < playerAction.mMonsters.size(); ++i) {

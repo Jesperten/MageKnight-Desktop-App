@@ -35,7 +35,7 @@ class Dialog_UserAction : public QDialog
 
 public:
     // Constructor
-    explicit Dialog_UserAction(QWidget *parent = nullptr);
+    explicit Dialog_UserAction(QWidget *parent = nullptr, QSoundEffect* soundPointer = nullptr);
 
     // Destructor
     ~Dialog_UserAction();
@@ -65,21 +65,27 @@ private slots:
     void on_comboBox_optional_currentIndexChanged(int index);
     void on_comboBox_successFail_currentIndexChanged(const QString &arg1);
 
-    void on_spinBox_woundCounts_valueChanged(int arg1);
-    void on_spinBox_addRep_valueChanged(int arg1);
+    void on_spinBox_addAAC_valueChanged(int arg1);
+    void on_spinBox_addArtifacts_valueChanged(int arg1);
+    void on_spinBox_addCrystals_valueChanged(int arg1);
     void on_spinBox_addFame_valueChanged(int arg1);
-    void on_spinBox_thrownArtifacts_valueChanged(int arg1);
-    void on_spinBox_thrownAAC_valueChanged(int arg1);
+    void on_spinBox_addRep_valueChanged(int arg1);
+    void on_spinBox_addSpells_valueChanged(int arg1);
+    void on_spinBox_addWounds_valueChanged(int arg1);
+
+
     void monsterTableWidget_valueChanged(void);
     void unitTableWidget_valueChanged(void);
 
-    void on_spinBox_addCrystals_valueChanged(int arg1);
+
 
 private:
 
     // Private members
     Ui::Dialog_UserAction *ui;
     Action mplayerAction;
+
+    bool slotsEnabled = false;
 
     std::vector<QString> mActionList;
     std::vector<QString> mOptionalListDungeon;
@@ -89,7 +95,7 @@ private:
     std::vector<QString> mOptionalListRuins;
     std::vector<QString> mOptionalListSpawningGrounds;
 
-    QSoundEffect mSoundEffects[20];
+    QSoundEffect* mpSoundEffects;
 
     std::vector<Player> mPlayerListCopy; // List of player objects (resized later)
     std::vector<City> mCityListCopy;     // List of City objects (resized later)

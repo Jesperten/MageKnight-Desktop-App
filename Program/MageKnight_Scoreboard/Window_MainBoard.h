@@ -43,6 +43,8 @@ public:
     // Destructor
     ~Window_MainBoard();
 
+    QSoundEffect mSoundEffects[20];
+
 signals:
     void userActionDialogOpened(void);
     void playPauseToggle(void);

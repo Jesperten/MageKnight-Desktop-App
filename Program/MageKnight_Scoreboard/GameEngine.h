@@ -52,6 +52,7 @@ private:
     std::vector<City> mMageKnight_Cities; // List of discovered cities on the map
     std::vector<QString> mGreatestTitlesPlayers; // List of strings used for display of greatest titles in the MainBoard window
 
+
     GameTimer mGameTimer;
 
     // Private constants

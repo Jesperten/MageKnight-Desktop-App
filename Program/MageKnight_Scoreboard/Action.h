@@ -96,16 +96,14 @@ public:
     unsigned int mCityID = 0;
 
     // Additional values (besides from the main action)
+    // These can be both aquired or thrown elements
     unsigned int mAddFame = 0;
+    int mAddAAC = 0;
+    int mAddArtifacts = 0;
+    int mAddCrystals = 0;
     int mAddRepStep = 0;
-    unsigned int mAddSpells = 0;
-    unsigned int mAddAAC = 0;
-    unsigned int mCrystals = 0;
+    int mAddSpells = 0;
 
-
-    // Thrown/discarded values
-    unsigned int mThrownArtifacts = 0;
-    unsigned int mThrownAAC = 0;
 
     std::vector<Monster> mMonsters;
     std::vector<Unit> mUnits;

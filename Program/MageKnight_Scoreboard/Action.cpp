@@ -13,13 +13,13 @@ void Action::reset() {
     mWounds = 0;
     mTime = 0;
     mCityID = 0;
+
+    mAddAAC = 0;
+    mAddArtifacts = 0;
+    mAddCrystals = 0;
     mAddFame = 0;
     mAddRepStep = 0;
     mAddSpells = 0;
-    mAddAAC = 0;
-    mCrystals = 0;
-    mThrownArtifacts = 0;
-    mThrownAAC = 0;
 
     mMonsters.clear();
     mMonsters.resize(0);

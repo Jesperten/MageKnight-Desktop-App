@@ -7,8 +7,10 @@
 
 /** ****************************************************** PUBLIC METHODS ********************************************************/
 
-Dialog_UserAction::Dialog_UserAction(QWidget *parent) : QDialog(parent), ui(new Ui::Dialog_UserAction) {
+Dialog_UserAction::Dialog_UserAction(QWidget *parent, QSoundEffect* soundPointer) : QDialog(parent), ui(new Ui::Dialog_UserAction) {
     ui->setupUi(this);
+
+    slotsEnabled = false;
 
     // Const pointer to the Singleton instance of the GameEngine class (global object)
     const GameEngine* gameEngine = GameEngine::instance();
@@ -17,26 +19,7 @@ Dialog_UserAction::Dialog_UserAction(QWidget *parent) : QDialog(parent), ui(new 
     // This is to ensure a more true random nature
     srand(unsigned(time(nullptr)));
 
-    mSoundEffects[0].setSource(QUrl("qrc:/sounds/Sound1"));
-    mSoundEffects[1].setSource(QUrl("qrc:/sounds/Sound2"));
-    mSoundEffects[2].setSource(QUrl("qrc:/sounds/Sound3"));
-    mSoundEffects[3].setSource(QUrl("qrc:/sounds/Sound4"));
-    mSoundEffects[4].setSource(QUrl("qrc:/sounds/Sound5"));
-    mSoundEffects[5].setSource(QUrl("qrc:/sounds/Sound6"));
-    mSoundEffects[6].setSource(QUrl("qrc:/sounds/Sound7"));
-    mSoundEffects[7].setSource(QUrl("qrc:/sounds/Sound8"));
-    mSoundEffects[8].setSource(QUrl("qrc:/sounds/Sound9"));
-    mSoundEffects[9].setSource(QUrl("qrc:/sounds/Sound10"));
-    mSoundEffects[10].setSource(QUrl("qrc:/sounds/Sound11"));
-    mSoundEffects[11].setSource(QUrl("qrc:/sounds/Sound12"));
-    mSoundEffects[12].setSource(QUrl("qrc:/sounds/Sound13"));
-    mSoundEffects[13].setSource(QUrl("qrc:/sounds/Sound14"));
-    mSoundEffects[14].setSource(QUrl("qrc:/sounds/Sound15"));
-    mSoundEffects[15].setSource(QUrl("qrc:/sounds/Sound16"));
-    mSoundEffects[16].setSource(QUrl("qrc:/sounds/Sound17"));
-    mSoundEffects[17].setSource(QUrl("qrc:/sounds/Sound18"));
-    mSoundEffects[18].setSource(QUrl("qrc:/sounds/Sound19"));
-    mSoundEffects[19].setSource(QUrl("qrc:/sounds/Sound20"));
+    mpSoundEffects = soundPointer;
 
     connect(gameEngine, &GameEngine::newMageKnightData, this, &Dialog_UserAction::on_newPlayerAndCityData );
 
@@ -285,13 +268,9 @@ void Dialog_UserAction::setOptionalComboBox(int index) {
                 cityString += (" (" + mCityListCopy.at(i).mColor + ")");
             }
 
-            //((cityList.at(i).mColor == "1337BiddybobFirkant") ? "" : cityList.at(i).mColor)
-
             if (mCityListCopy.at(i).mConquered == true)
-                //ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " [Conquered]");
                 ui->comboBox_optional->addItem(cityString + " [Conquered]");
             else
-                //ui->comboBox_optional->addItem(mCityListCopy.at(i).mName + " (" + mCityListCopy.at(i).mColor + ")" + " ["+ QString::number(mCityListCopy.at(i).mMonstersRemaining) +"]");
                 ui->comboBox_optional->addItem(cityString + " ["+ QString::number(mCityListCopy.at(i).mMonstersRemaining) +"]");
         }
         break;
@@ -354,12 +333,13 @@ void Dialog_UserAction::enableForm(bool enabled) {
     ui->comboBox_actionList->setEnabled(enabled);
     ui->comboBox_optional->setAutoCompletion(enabled);
     ui->comboBox_successFail->setEnabled(enabled);
-    ui->spinBox_addFame->setEnabled(enabled);
-    ui->spinBox_addRep->setEnabled(enabled);
+    ui->spinBox_addAAC->setEnabled(enabled);
+    ui->spinBox_addArtifacts->setEnabled(enabled);
     ui->spinBox_addCrystals->setEnabled(enabled);
-    ui->spinBox_thrownAAC->setEnabled(enabled);
-    ui->spinBox_thrownArtifacts->setEnabled(enabled);
-    ui->spinBox_woundCounts->setEnabled(enabled);
+    ui->spinBox_addFame->setEnabled(enabled);
+    ui->spinBox_addSpells->setEnabled(enabled);
+    ui->spinBox_addRep->setEnabled(enabled);
+    ui->spinBox_addWounds->setEnabled(enabled);
     ui->pushButton_addMonster->setEnabled(enabled);
     ui->pushButton_addUnit->setEnabled(enabled);
 }
@@ -608,66 +588,74 @@ void Dialog_UserAction::on_dialogSetupDataReceived(const std::vector<Player>& pl
     mPlayerListCopy = playerList;
     mCityListCopy = cityList;
 
+    slotsEnabled = false;
+
     defineStringLists(); // Declares the string lists used in the different comboboxes
     ui_userActionSetupClean();
 
     // Const pointer to the Singleton instance of the GameEngine class (global object)
     const GameEngine* gameEngine = GameEngine::instance();
     connect(this, &Dialog_UserAction::newTestUserAction, gameEngine, &GameEngine::on_newTestUserAction);
+
+    slotsEnabled = true;
 }
 
 void Dialog_UserAction::on_newPlayerAndCityData(const std::vector<Player>& playerList, const std::vector<City>& cityList) {
-    // Store the new transmitted values as local copies
-    mPlayerListCopy = playerList;
-    mCityListCopy = cityList;
+    if (slotsEnabled) {
+        // Store the new transmitted values as local copies
+        mPlayerListCopy = playerList;
+        mCityListCopy = cityList;
 
-    emit newTestUserAction(mplayerAction);
+        emit newTestUserAction(mplayerAction);
+    }
 }
 
 void Dialog_UserAction::on_newTempPlayerData(const Player& player, const Player& playerTemp) {
-    std::vector<QString> actionResultList(NUMBER_OF_SCORE_STATS);
+    if (slotsEnabled) {
+        std::vector<QString> actionResultList(NUMBER_OF_SCORE_STATS);
 
-             int deltaScore    = playerTemp.mScore             - player.mScore;
-    unsigned int deltaFame     = playerTemp.mFame              - player.mFame;
-             int deltaRep      = playerTemp.mReputation        - player.mReputation;
-             int deltaRepStep  = playerTemp.mRepStep           - player.mRepStep;
-    unsigned int deltaLevel    = playerTemp.mLevel             - player.mLevel;
-             int deltaAAC      = int(playerTemp.mAActionCards) - int(player.mAActionCards);
-             int deltaSpell    = int(playerTemp.mSpellCards)   - int(player.mSpellCards);
-             int deltaArtifact = int(playerTemp.mArtifacts)    - int(player.mArtifacts);
-             int deltaCrystals = int(playerTemp.mCrystals)     - int(player.mCrystals);
+                 int deltaScore    = playerTemp.mScore             - player.mScore;
+        unsigned int deltaFame     = playerTemp.mFame              - player.mFame;
+                 int deltaRep      = playerTemp.mReputation        - player.mReputation;
+                 int deltaRepStep  = playerTemp.mRepStep           - player.mRepStep;
+        unsigned int deltaLevel    = playerTemp.mLevel             - player.mLevel;
+                 int deltaAAC      = int(playerTemp.mAActionCards) - int(player.mAActionCards);
+                 int deltaSpell    = int(playerTemp.mSpellCards)   - int(player.mSpellCards);
+                 int deltaArtifact = int(playerTemp.mArtifacts)    - int(player.mArtifacts);
+                 int deltaCrystals = int(playerTemp.mCrystals)     - int(player.mCrystals);
 
-    actionResultList.at(SCORE_STAT_ID_SCORE)    = QString::number(playerTemp.mScore)        + "(" + QString::number(deltaScore)    + ")";
-    actionResultList.at(SCORE_STAT_ID_FAME)     = QString::number(playerTemp.mFame)         + "(" + QString::number(deltaFame)     + ")";
-    actionResultList.at(SCORE_STAT_ID_REP)      = QString::number(playerTemp.mReputation)   + "(" + QString::number(deltaRep)      + ")" + "\n" + QString::number(int(playerTemp.mRepStep) - 7) + "(" + QString::number(deltaRepStep)      + ")";
-    actionResultList.at(SCORE_STAT_ID_LEVEL)    = QString::number(playerTemp.mLevel)        + "(" + QString::number(deltaLevel)    + ")";
-    actionResultList.at(SCORE_STAT_ID_AAC)      = QString::number(playerTemp.mAActionCards) + "(" + QString::number(deltaAAC)      + ")";
-    actionResultList.at(SCORE_STAT_ID_SPELL)    = QString::number(playerTemp.mSpellCards)   + "(" + QString::number(deltaSpell)    + ")";
-    actionResultList.at(SCORE_STAT_ID_ARTIFACT) = QString::number(playerTemp.mArtifacts)    + "(" + QString::number(deltaArtifact) + ")";
-    actionResultList.at(SCORE_STAT_ID_CRYSTALS) = QString::number(playerTemp.mCrystals)     + "(" + QString::number(deltaCrystals) + ")";
+        actionResultList.at(SCORE_STAT_ID_SCORE)    = QString::number(playerTemp.mScore)        + "(" + QString::number(deltaScore)    + ")";
+        actionResultList.at(SCORE_STAT_ID_FAME)     = QString::number(playerTemp.mFame)         + "(" + QString::number(deltaFame)     + ")";
+        actionResultList.at(SCORE_STAT_ID_REP)      = QString::number(playerTemp.mReputation)   + "(" + QString::number(deltaRep)      + ")" + "\n" + QString::number(int(playerTemp.mRepStep) - 7) + "(" + QString::number(deltaRepStep)      + ")";
+        actionResultList.at(SCORE_STAT_ID_LEVEL)    = QString::number(playerTemp.mLevel)        + "(" + QString::number(deltaLevel)    + ")";
+        actionResultList.at(SCORE_STAT_ID_AAC)      = QString::number(playerTemp.mAActionCards) + "(" + QString::number(deltaAAC)      + ")";
+        actionResultList.at(SCORE_STAT_ID_SPELL)    = QString::number(playerTemp.mSpellCards)   + "(" + QString::number(deltaSpell)    + ")";
+        actionResultList.at(SCORE_STAT_ID_ARTIFACT) = QString::number(playerTemp.mArtifacts)    + "(" + QString::number(deltaArtifact) + ")";
+        actionResultList.at(SCORE_STAT_ID_CRYSTALS) = QString::number(playerTemp.mCrystals)     + "(" + QString::number(deltaCrystals) + ")";
 
-    for (unsigned int i = 0; i < NUMBER_OF_SCORE_STATS; ++i) {
-        ui->tableWidget_actionStats->setItem(1, int(i), new QTableWidgetItem(actionResultList.at(i)));
+        for (unsigned int i = 0; i < NUMBER_OF_SCORE_STATS; ++i) {
+            ui->tableWidget_actionStats->setItem(1, int(i), new QTableWidgetItem(actionResultList.at(i)));
 
-        if ((i == SCORE_STAT_ID_LEVEL) && (deltaLevel > 0)) {
-            QColor playerColor = player.mPlayerColor;
-            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
-        }
-        else if ((i == SCORE_STAT_ID_AAC) && (deltaAAC > 0)) {
-            QColor playerColor = player.mPlayerColor;
-            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
-        }
-        else if ((i == SCORE_STAT_ID_SPELL) && (deltaSpell > 0)) {
-            QColor playerColor = player.mPlayerColor;
-            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
-        }
-        else if ((i == SCORE_STAT_ID_ARTIFACT) && (deltaArtifact > 0)) {
-            QColor playerColor = player.mPlayerColor;
-            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
-        }
-        else if ((i == SCORE_STAT_ID_CRYSTALS) && (deltaCrystals > 0)) {
-            QColor playerColor = player.mPlayerColor;
-            ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+            if ((i == SCORE_STAT_ID_LEVEL) && (deltaLevel > 0)) {
+                QColor playerColor = player.mPlayerColor;
+                ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+            }
+            else if ((i == SCORE_STAT_ID_AAC) && (deltaAAC > 0)) {
+                QColor playerColor = player.mPlayerColor;
+                ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+            }
+            else if ((i == SCORE_STAT_ID_SPELL) && (deltaSpell > 0)) {
+                QColor playerColor = player.mPlayerColor;
+                ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+            }
+            else if ((i == SCORE_STAT_ID_ARTIFACT) && (deltaArtifact > 0)) {
+                QColor playerColor = player.mPlayerColor;
+                ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+            }
+            else if ((i == SCORE_STAT_ID_CRYSTALS) && (deltaCrystals > 0)) {
+                QColor playerColor = player.mPlayerColor;
+                ui->tableWidget_actionStats->item(1, int(i))->setBackground(QBrush(playerColor));
+            }
         }
     }
 }
@@ -686,13 +674,12 @@ void Dialog_UserAction::on_pushButton_addMonster_clicked() {
     acceptButtonControlCheck();
 
     unsigned int i = rand() % 20;
-    mSoundEffects[i].play();
+    mpSoundEffects[i].play();
 }
 
 void Dialog_UserAction::on_pushButton_deleteMonster_clicked() {
     removeMonster(); // Adds a monster to the action monster list and displays it on the monster table
     emit newTestUserAction(mplayerAction);
-    //updateResults();
     acceptButtonControlCheck();
 }
 
@@ -709,251 +696,290 @@ void Dialog_UserAction::on_pushButton_removeUnit_clicked() {
 }
 
 void Dialog_UserAction::on_comboBox_playerList_currentIndexChanged(int index) {
-    // Clear the score view, monsterlist and unitList and reset the action instance
-    clearScoreTable();
+    if (slotsEnabled) {
+        // Clear the score view, monsterlist and unitList and reset the action instance
+        clearScoreTable();
 
-    // Clear the monster and unit lists
-    ui->tableWidget_monsters->setRowCount(1);
-    ui->tableWidget_units->setRowCount(1);
-    ui->pushButton_deleteMonster->setEnabled(false);
-    ui->pushButton_removeUnit->setEnabled(false);
+        // Clear the monster and unit lists
+        ui->tableWidget_monsters->setRowCount(1);
+        ui->tableWidget_units->setRowCount(1);
+        ui->pushButton_deleteMonster->setEnabled(false);
+        ui->pushButton_removeUnit->setEnabled(false);
 
-    mplayerAction.reset();
+        mplayerAction.reset();
 
-    if (index > 0) {
-        mplayerAction.mPlayerID = unsigned(index);
-        emit newTestUserAction(mplayerAction);
-        //updateResults();
-        enableForm(true);
+        if (index > 0) {
+            mplayerAction.mPlayerID = unsigned(index);
+            emit newTestUserAction(mplayerAction);
+            //updateResults();
+            enableForm(true);
 
-        unsigned int nUnits = mPlayerListCopy.at(unsigned(index-1)).mUnits.size();
-        for (unsigned int i = 0; i < nUnits; ++i) {
-            addUnit(mPlayerListCopy.at(unsigned(index-1)).mUnits.at(i));
+            unsigned int nUnits = mPlayerListCopy.at(unsigned(index-1)).mUnits.size();
+            for (unsigned int i = 0; i < nUnits; ++i) {
+                addUnit(mPlayerListCopy.at(unsigned(index-1)).mUnits.at(i));
+            }
         }
-    }
-    else {
-        enableForm(false);
-    }
+        else {
+            enableForm(false);
+        }
 
-    acceptButtonControlCheck();
+        acceptButtonControlCheck();
+    }
 }
 
 void Dialog_UserAction::on_comboBox_actionList_currentIndexChanged(int index) {
-    mplayerAction.mPlayerID = unsigned(ui->comboBox_playerList->currentIndex());
-    mplayerAction.mMainActionID = unsigned(index);
+    if (slotsEnabled) {
+        mplayerAction.mPlayerID = unsigned(ui->comboBox_playerList->currentIndex());
+        mplayerAction.mMainActionID = unsigned(index);
 
-    clearScoreTable();
+        clearScoreTable();
 
-    ui->comboBox_successFail->setCurrentIndex(0);
-    setOptionalComboBox(index);
+        ui->comboBox_successFail->setCurrentIndex(0);
+        setOptionalComboBox(index);
 
-    switch (index) {
-    case ACTION_ID_TEXT: // No Action
-    case ACTION_ID_RAMPAGING_MONSTER:
-    case ACTION_ID_INTERACTION:
-    case ACTION_ID_PLUNDERED_VILLAGE:
-        ui->comboBox_optional->setEnabled(false);    // Not used
-        ui->comboBox_successFail->setEnabled(false); // Not used
-        break;
+        switch (index) {
+        case ACTION_ID_TEXT: // No Action
+        case ACTION_ID_RAMPAGING_MONSTER:
+        case ACTION_ID_INTERACTION:
+        case ACTION_ID_PLUNDERED_VILLAGE:
+            ui->comboBox_optional->setEnabled(false);    // Not used
+            ui->comboBox_successFail->setEnabled(false); // Not used
+            break;
 
-    case ACTION_ID_MAGE_TOWER:
-    case ACTION_ID_KEEP:
-    case ACTION_ID_BURNED_MONASTERY:
-    case ACTION_ID_TOMB:
-        ui->comboBox_optional->setEnabled(false);    // Not used
-        ui->comboBox_successFail->setEnabled(true);  // Used to define success/fail state
-        break;
+        case ACTION_ID_MAGE_TOWER:
+        case ACTION_ID_KEEP:
+        case ACTION_ID_BURNED_MONASTERY:
+        case ACTION_ID_TOMB:
+            ui->comboBox_optional->setEnabled(false);    // Not used
+            ui->comboBox_successFail->setEnabled(true);  // Used to define success/fail state
+            break;
 
-    case ACTION_ID_DUNGEON:
-    case ACTION_ID_LABYRINTH:
-    case ACTION_ID_MAZE:
-    case ACTION_ID_MONSTER_DEN:
-    case ACTION_ID_RUINS:
-    case ACTION_ID_SPAWNING_GROUNDS:
-        ui->comboBox_optional->setEnabled(true);     // Used to set reward if succeeded
-        ui->comboBox_successFail->setEnabled(true);  // Used to define success/fail state
-        break;
+        case ACTION_ID_DUNGEON:
+        case ACTION_ID_LABYRINTH:
+        case ACTION_ID_MAZE:
+        case ACTION_ID_MONSTER_DEN:
+        case ACTION_ID_RUINS:
+        case ACTION_ID_SPAWNING_GROUNDS:
+            ui->comboBox_optional->setEnabled(true);     // Used to set reward if succeeded
+            ui->comboBox_successFail->setEnabled(true);  // Used to define success/fail state
+            break;
 
-    case ACTION_ID_CITY: // City
-        ui->comboBox_optional->setEnabled(true);     // Used to select attacked city
-        ui->comboBox_successFail->setEnabled(false); // Not used
-        break;
+        case ACTION_ID_CITY: // City
+            ui->comboBox_optional->setEnabled(true);     // Used to select attacked city
+            ui->comboBox_successFail->setEnabled(false); // Not used
+            break;
 
-    default:
-        break;
+        default:
+            break;
+        }
+
+        monsterTableWidget_valueChanged(); // Trigger a check of the specified monsters using the new action id.
+        acceptButtonControlCheck();        // Check if the accept button can be enabled (all necessary settings set)
+        emit newTestUserAction(mplayerAction);
     }
-
-    monsterTableWidget_valueChanged(); // Trigger a check of the specified monsters using the new action id.
-    acceptButtonControlCheck();        // Check if the accept button can be enabled (all necessary settings set)
-    emit newTestUserAction(mplayerAction);
 }
 
 void Dialog_UserAction::on_comboBox_optional_currentIndexChanged(int index) {
-    mplayerAction.mOptionalID = unsigned(index);
+    if (slotsEnabled) {
+        mplayerAction.mOptionalID = unsigned(index);
 
-    if ((ui->comboBox_actionList->currentIndex() == ACTION_ID_CITY) && (index > 0)) {
-        mplayerAction.mCityID = unsigned(index-1);
+        if ((ui->comboBox_actionList->currentIndex() == ACTION_ID_CITY) && (index > 0)) {
+            mplayerAction.mCityID = unsigned(index-1);
+        }
+
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
     }
-
-    acceptButtonControlCheck();
-    emit newTestUserAction(mplayerAction);
 }
 
 void Dialog_UserAction::on_comboBox_successFail_currentIndexChanged(const QString &arg1) {
-    if      (arg1 == "Success") mplayerAction.mSuccessFail = true;
-    else if (arg1 == "Fail")    mplayerAction.mSuccessFail = false;
-    else                        mplayerAction.mSuccessFail = false;
+    if (slotsEnabled) {
+        if      (arg1 == "Success") mplayerAction.mSuccessFail = true;
+        else if (arg1 == "Fail")    mplayerAction.mSuccessFail = false;
+        else                        mplayerAction.mSuccessFail = false;
 
-    acceptButtonControlCheck();
-    emit newTestUserAction(mplayerAction);
-}
-
-void Dialog_UserAction::on_spinBox_woundCounts_valueChanged(int arg1) {
-    unsigned int playerIndex = mplayerAction.mPlayerID - 1;
-    unsigned int availableWounds = mPlayerListCopy.at(playerIndex).mWounds;
-
-    if(-1 * int(availableWounds) > arg1) {
-        mplayerAction.mWounds = int(availableWounds);
-        ui->spinBox_woundCounts->setValue(-1 * int(availableWounds));
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
     }
-    else {
-        mplayerAction.mWounds = arg1;
+}
+
+
+void Dialog_UserAction::on_spinBox_addAAC_valueChanged(int arg1) {
+    if (slotsEnabled) {
+        int availableAAC = int(mPlayerListCopy.at(mplayerAction.mPlayerID - 1).mAActionCards);
+
+        if((availableAAC + arg1) < 0) {
+            mplayerAction.mAddAAC = -1 * availableAAC;
+            ui->spinBox_addAAC->setValue(-1 * availableAAC);
+        }
+        else {
+            mplayerAction.mAddAAC = arg1;
+        }
+
+
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
     }
-
-    acceptButtonControlCheck();
-    emit newTestUserAction(mplayerAction);
-    //updateResults();
 }
 
-void Dialog_UserAction::on_spinBox_addRep_valueChanged(int arg1) {
-    mplayerAction.mAddRepStep = arg1;
+void Dialog_UserAction::on_spinBox_addArtifacts_valueChanged(int arg1) {
+    if (slotsEnabled) {
+        int availableArtifacts = int(mPlayerListCopy.at(mplayerAction.mPlayerID - 1).mArtifacts);
 
-    acceptButtonControlCheck();
-    emit newTestUserAction(mplayerAction);
-}
+        if((availableArtifacts + arg1) < 0) {
+            mplayerAction.mAddArtifacts = -1 * availableArtifacts;
+            ui->spinBox_addArtifacts->setValue(-1 * availableArtifacts);
+        }
+        else {
+            mplayerAction.mAddArtifacts = arg1;
+        }
 
-void Dialog_UserAction::on_spinBox_addFame_valueChanged(int arg1) {
-    mplayerAction.mAddFame = unsigned(arg1);
-
-    acceptButtonControlCheck();
-    emit newTestUserAction(mplayerAction);
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
+    }
 }
 
 void Dialog_UserAction::on_spinBox_addCrystals_valueChanged(int arg1) {
-    unsigned int playerIndex = mplayerAction.mPlayerID - 1;
-    int availableCrystals = int(mPlayerListCopy.at(playerIndex).mCrystals);
+    if (slotsEnabled) {
+        int availableCrystals = int(mPlayerListCopy.at(mplayerAction.mPlayerID - 1).mCrystals);
 
-    if ((availableCrystals + arg1) <= 0) {
-        mplayerAction.mCrystals = -1 * availableCrystals;
-        ui->spinBox_addCrystals->setValue(-1 * availableCrystals);
-    }
-    else {
-        mplayerAction.mCrystals = unsigned(arg1);
-    }
-
-    acceptButtonControlCheck();
-    emit newTestUserAction(mplayerAction);
-}
-
-void Dialog_UserAction::on_spinBox_thrownArtifacts_valueChanged(int arg1) {
-    unsigned int playerIndex = mplayerAction.mPlayerID - 1;
-    unsigned int availableArtifacts = mPlayerListCopy.at(playerIndex).mArtifacts;
-
-    if(int(availableArtifacts) < arg1) {
-        mplayerAction.mThrownArtifacts = availableArtifacts;
-        ui->spinBox_thrownArtifacts->setValue(int(availableArtifacts));
-    }
-    else {
-        mplayerAction.mThrownArtifacts = unsigned(arg1);
-    }
-
-    acceptButtonControlCheck();
-    emit newTestUserAction(mplayerAction);
-}
-
-void Dialog_UserAction::on_spinBox_thrownAAC_valueChanged(int arg1) {
-    unsigned int playerIndex = mplayerAction.mPlayerID - 1;
-    unsigned int availableAAC = mPlayerListCopy.at(playerIndex).mAActionCards;
-
-    if (int(availableAAC) < arg1) {
-        mplayerAction.mThrownAAC = availableAAC;
-        ui->spinBox_thrownAAC->setValue(int(availableAAC));
-    }
-    else {
-        mplayerAction.mThrownAAC = unsigned(arg1);
-    }
-
-
-    acceptButtonControlCheck();
-    emit newTestUserAction(mplayerAction);
-}
-
-void Dialog_UserAction::monsterTableWidget_valueChanged(void) {
-    int nMonsters = ui->tableWidget_monsters->rowCount()-1;
-
-    for (int i = 1; i<=nMonsters; ++i) {
-        QComboBox *typeCB = qobject_cast<QComboBox*>(ui->tableWidget_monsters->cellWidget(i, 0));
-        QSpinBox *fameSB = qobject_cast<QSpinBox*>(ui->tableWidget_monsters->cellWidget(i, 1));
-        QComboBox *specialCB = qobject_cast<QComboBox*>(ui->tableWidget_monsters->cellWidget(i, 2));
-        QCheckBox *isRampagingCB = qobject_cast<QCheckBox*>(ui->tableWidget_monsters->cellWidget(i,3));
-
-        QString typeText = typeCB->currentText();
-
-        if (typeText == "Draconum" || typeText == "Marauding Orc") {
-            // When the specified action is Rampaging monster, the specified Orcs and/or Draconum can only be Rampaging
-            // Thus, disable the checkbox control and set the state to checked = true.
-            if (ui->comboBox_actionList->currentIndex() == ACTION_ID_RAMPAGING_MONSTER) {
-                isRampagingCB->setEnabled(false);
-                isRampagingCB->setChecked(true);
-
-            }
-            else {
-                // For any other action, the checkbox is enabled for editing
-                isRampagingCB->setEnabled(true);
-            }
+        if ((availableCrystals + arg1) < 0) {
+            mplayerAction.mAddCrystals = -1 * availableCrystals;
+            ui->spinBox_addCrystals->setValue(-1 * availableCrystals);
         }
         else {
-            // When the specified monster is any other type than Orcs and Draconum, then disable and uncheck the checkbox
-            isRampagingCB->setEnabled(false);
-            isRampagingCB->setChecked(false);
+            mplayerAction.mAddCrystals = arg1;
         }
 
-        unsigned int fameNumber = unsigned(fameSB->value());
-        QString specialText = specialCB->currentText();
-        bool rampagingState = isRampagingCB->isChecked();
-
-        mplayerAction.mMonsters.at(unsigned(i-1)).mType = typeText;
-        mplayerAction.mMonsters.at(unsigned(i-1)).mFame = fameNumber;
-        mplayerAction.mMonsters.at(unsigned(i-1)).mSpecial = specialText;
-        mplayerAction.mMonsters.at(unsigned(i-1)).mRampaging = rampagingState;
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
     }
+}
 
-    acceptButtonControlCheck();
-    emit newTestUserAction(mplayerAction);
+void Dialog_UserAction::on_spinBox_addFame_valueChanged(int arg1) {
+    if (slotsEnabled) {
+        mplayerAction.mAddFame = unsigned(arg1);
+
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
+    }
+}
+
+void Dialog_UserAction::on_spinBox_addRep_valueChanged(int arg1) {
+    if (slotsEnabled) {
+        mplayerAction.mAddRepStep = arg1;
+
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
+    }
+}
+
+void Dialog_UserAction::on_spinBox_addSpells_valueChanged(int arg1) {
+    if (slotsEnabled) {
+        int availableSpells = int(mPlayerListCopy.at(mplayerAction.mPlayerID - 1).mSpellCards);
+
+        if ((availableSpells + arg1) < 0) {
+            mplayerAction.mAddSpells = -1 * availableSpells;
+            ui->spinBox_addSpells->setValue(-1 * availableSpells);
+        }
+        else {
+            mplayerAction.mAddSpells = arg1;
+        }
+
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
+    }
+}
+
+void Dialog_UserAction::on_spinBox_addWounds_valueChanged(int arg1) {
+    if (slotsEnabled) {
+        int availableWounds = int(mPlayerListCopy.at(mplayerAction.mPlayerID - 1).mWounds);
+
+        if((availableWounds + arg1) < 0) {
+            mplayerAction.mWounds = availableWounds;
+            ui->spinBox_addWounds->setValue(-1 * availableWounds);
+        }
+        else {
+            mplayerAction.mWounds = arg1;
+        }
+
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
+    }
+}
+
+
+
+void Dialog_UserAction::monsterTableWidget_valueChanged(void) {
+    if (slotsEnabled) {
+        int nMonsters = ui->tableWidget_monsters->rowCount()-1;
+
+        for (int i = 1; i<=nMonsters; ++i) {
+            QComboBox *typeCB = qobject_cast<QComboBox*>(ui->tableWidget_monsters->cellWidget(i, 0));
+            QSpinBox *fameSB = qobject_cast<QSpinBox*>(ui->tableWidget_monsters->cellWidget(i, 1));
+            QComboBox *specialCB = qobject_cast<QComboBox*>(ui->tableWidget_monsters->cellWidget(i, 2));
+            QCheckBox *isRampagingCB = qobject_cast<QCheckBox*>(ui->tableWidget_monsters->cellWidget(i,3));
+
+            QString typeText = typeCB->currentText();
+
+            if (typeText == "Draconum" || typeText == "Marauding Orc") {
+                // When the specified action is Rampaging monster, the specified Orcs and/or Draconum can only be Rampaging
+                // Thus, disable the checkbox control and set the state to checked = true.
+                if (ui->comboBox_actionList->currentIndex() == ACTION_ID_RAMPAGING_MONSTER) {
+                    isRampagingCB->setEnabled(false);
+                    isRampagingCB->setChecked(true);
+
+                }
+                else {
+                    // For any other action, the checkbox is enabled for editing
+                    isRampagingCB->setEnabled(true);
+                }
+            }
+            else {
+                // When the specified monster is any other type than Orcs and Draconum, then disable and uncheck the checkbox
+                isRampagingCB->setEnabled(false);
+                isRampagingCB->setChecked(false);
+            }
+
+            unsigned int fameNumber = unsigned(fameSB->value());
+            QString specialText = specialCB->currentText();
+            bool rampagingState = isRampagingCB->isChecked();
+
+            mplayerAction.mMonsters.at(unsigned(i-1)).mType = typeText;
+            mplayerAction.mMonsters.at(unsigned(i-1)).mFame = fameNumber;
+            mplayerAction.mMonsters.at(unsigned(i-1)).mSpecial = specialText;
+            mplayerAction.mMonsters.at(unsigned(i-1)).mRampaging = rampagingState;
+        }
+
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
+    }
 }
 
 void Dialog_UserAction::unitTableWidget_valueChanged(void) {
-    int nUnits = ui->tableWidget_units->rowCount()-1;
+    if (slotsEnabled) {
+        int nUnits = ui->tableWidget_units->rowCount()-1;
 
-    for (int i = 0; i<nUnits; ++i) {
-        QComboBox *typeCB = qobject_cast<QComboBox*>(ui->tableWidget_units->cellWidget(i+1,0));
-        QCheckBox *woundedCB = qobject_cast<QCheckBox*>(ui->tableWidget_units->cellWidget(i+1,1));
+        for (int i = 0; i<nUnits; ++i) {
+            QComboBox *typeCB = qobject_cast<QComboBox*>(ui->tableWidget_units->cellWidget(i+1,0));
+            QCheckBox *woundedCB = qobject_cast<QCheckBox*>(ui->tableWidget_units->cellWidget(i+1,1));
 
-        QString typeText = typeCB->currentText();
-        bool woundedState = woundedCB->isChecked();
+            QString typeText = typeCB->currentText();
+            bool woundedState = woundedCB->isChecked();
 
-        mplayerAction.mUnits.at(unsigned(i)).mName = typeText;
+            mplayerAction.mUnits.at(unsigned(i)).mName = typeText;
 
-        if (typeText.at(typeText.length()-2).isDigit()) {
-            mplayerAction.mUnits.at(unsigned(i)).mLevel = unsigned(typeText.at(typeText.length()-2).digitValue());
+            if (typeText.at(typeText.length()-2).isDigit()) {
+                mplayerAction.mUnits.at(unsigned(i)).mLevel = unsigned(typeText.at(typeText.length()-2).digitValue());
+            }
+            else {
+                mplayerAction.mUnits.at(unsigned(i)).mLevel = 0;
+            }
+
+            mplayerAction.mUnits.at(unsigned(i)).mWounded = woundedState;
         }
-        else {
-            mplayerAction.mUnits.at(unsigned(i)).mLevel = 0;
-        }
 
-        mplayerAction.mUnits.at(unsigned(i)).mWounded = woundedState;
+        acceptButtonControlCheck();
+        emit newTestUserAction(mplayerAction);
     }
-
-    acceptButtonControlCheck();
-    emit newTestUserAction(mplayerAction);
 }
