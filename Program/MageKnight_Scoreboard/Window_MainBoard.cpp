@@ -10,6 +10,8 @@
 /** ****************************************************** PUBLIC METHODS ********************************************************/
 /** ******************************************************************************************************************************/
 
+static std::vector<QSoundEffect> mSoundEffects(20);
+
 Window_MainBoard::Window_MainBoard(QWidget *parent) : QMainWindow(parent), ui(new Ui::Window_MainBoard) {
     ui->setupUi(this);
 
@@ -18,26 +20,27 @@ Window_MainBoard::Window_MainBoard(QWidget *parent) : QMainWindow(parent), ui(ne
     greatestTitleTableSetupClean();
     graphWidgetSetupClean();
 
-    mSoundEffects[ 0].setSource(QUrl("qrc:/sounds/Sound1" ));
-    mSoundEffects[ 1].setSource(QUrl("qrc:/sounds/Sound2" ));
-    mSoundEffects[ 2].setSource(QUrl("qrc:/sounds/Sound3" ));
-    mSoundEffects[ 3].setSource(QUrl("qrc:/sounds/Sound4" ));
-    mSoundEffects[ 4].setSource(QUrl("qrc:/sounds/Sound5" ));
-    mSoundEffects[ 5].setSource(QUrl("qrc:/sounds/Sound6" ));
-    mSoundEffects[ 6].setSource(QUrl("qrc:/sounds/Sound7" ));
-    mSoundEffects[ 7].setSource(QUrl("qrc:/sounds/Sound8" ));
-    mSoundEffects[ 8].setSource(QUrl("qrc:/sounds/Sound9" ));
-    mSoundEffects[ 9].setSource(QUrl("qrc:/sounds/Sound10"));
-    mSoundEffects[10].setSource(QUrl("qrc:/sounds/Sound11"));
-    mSoundEffects[11].setSource(QUrl("qrc:/sounds/Sound12"));
-    mSoundEffects[12].setSource(QUrl("qrc:/sounds/Sound13"));
-    mSoundEffects[13].setSource(QUrl("qrc:/sounds/Sound14"));
-    mSoundEffects[14].setSource(QUrl("qrc:/sounds/Sound15"));
-    mSoundEffects[15].setSource(QUrl("qrc:/sounds/Sound16"));
-    mSoundEffects[16].setSource(QUrl("qrc:/sounds/Sound17"));
-    mSoundEffects[17].setSource(QUrl("qrc:/sounds/Sound18"));
-    mSoundEffects[18].setSource(QUrl("qrc:/sounds/Sound19"));
-    mSoundEffects[19].setSource(QUrl("qrc:/sounds/Sound20"));
+
+    mSoundEffects.at( 0).setSource(QUrl("qrc:/sounds/Sound1" ));
+    mSoundEffects.at( 1).setSource(QUrl("qrc:/sounds/Sound2" ));
+    mSoundEffects.at( 2).setSource(QUrl("qrc:/sounds/Sound3" ));
+    mSoundEffects.at( 3).setSource(QUrl("qrc:/sounds/Sound4" ));
+    mSoundEffects.at( 4).setSource(QUrl("qrc:/sounds/Sound5" ));
+    mSoundEffects.at( 5).setSource(QUrl("qrc:/sounds/Sound6" ));
+    mSoundEffects.at( 6).setSource(QUrl("qrc:/sounds/Sound7" ));
+    mSoundEffects.at( 7).setSource(QUrl("qrc:/sounds/Sound8" ));
+    mSoundEffects.at( 8).setSource(QUrl("qrc:/sounds/Sound9" ));
+    mSoundEffects.at( 9).setSource(QUrl("qrc:/sounds/Sound10"));
+    mSoundEffects.at(10).setSource(QUrl("qrc:/sounds/Sound11"));
+    mSoundEffects.at(11).setSource(QUrl("qrc:/sounds/Sound12"));
+    mSoundEffects.at(12).setSource(QUrl("qrc:/sounds/Sound13"));
+    mSoundEffects.at(13).setSource(QUrl("qrc:/sounds/Sound14"));
+    mSoundEffects.at(14).setSource(QUrl("qrc:/sounds/Sound15"));
+    mSoundEffects.at(15).setSource(QUrl("qrc:/sounds/Sound16"));
+    mSoundEffects.at(16).setSource(QUrl("qrc:/sounds/Sound17"));
+    mSoundEffects.at(17).setSource(QUrl("qrc:/sounds/Sound18"));
+    mSoundEffects.at(18).setSource(QUrl("qrc:/sounds/Sound19"));
+    mSoundEffects.at(19).setSource(QUrl("qrc:/sounds/Sound20"));
 }
 
 Window_MainBoard::~Window_MainBoard() {
@@ -431,7 +434,7 @@ void Window_MainBoard::on_pushButton_endGame_clicked() {
 }
 
 void Window_MainBoard::on_pushButton_enterUserAction_clicked() {
-    Dialog_UserAction actionDialog(this, mSoundEffects);
+    Dialog_UserAction actionDialog(this, &mSoundEffects);
     emit userActionDialogOpened(); // Request for player and city data from gameEngine
     //actionDialog.setModal(true);
     //actionDialog.setWindowFlags(Qt::FramelessWindowHint);

@@ -2,6 +2,7 @@
 #define Window_MainBoard_H
 
 #include <QMainWindow>
+#include <vector>
 #include "Dialog_UserAction.h"
 #include "GameTimer.h"
 
@@ -43,7 +44,7 @@ public:
     // Destructor
     ~Window_MainBoard();
 
-    QSoundEffect mSoundEffects[20];
+//    std::vector<QSoundEffect> mSoundEffects(20);
 
 signals:
     void userActionDialogOpened(void);

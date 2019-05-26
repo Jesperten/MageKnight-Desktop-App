@@ -4,10 +4,11 @@
 #include "ui_Dialog_UserAction.h"
 #include "Dialog_UserAction.h"
 #include "GameEngine.h"
+#include <QDebug>
 
 /** ****************************************************** PUBLIC METHODS ********************************************************/
 
-Dialog_UserAction::Dialog_UserAction(QWidget *parent, QSoundEffect* soundPointer) : QDialog(parent), ui(new Ui::Dialog_UserAction) {
+Dialog_UserAction::Dialog_UserAction(QWidget *parent, std::vector<QSoundEffect>* soundPointer) : QDialog(parent), ui(new Ui::Dialog_UserAction) {
     ui->setupUi(this);
 
     slotsEnabled = false;
@@ -673,8 +674,9 @@ void Dialog_UserAction::on_pushButton_addMonster_clicked() {
     addMonster(); // Adds a monster to the action monster list and displays it on the monster table
     acceptButtonControlCheck();
 
-    unsigned int i = rand() % 20;
-    mpSoundEffects[i].play();
+    unsigned int i = rand() % mpSoundEffects->size();
+    qDebug() << i;
+    mpSoundEffects->at(i).play();
 }
 
 void Dialog_UserAction::on_pushButton_deleteMonster_clicked() {

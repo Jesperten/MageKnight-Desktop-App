@@ -35,7 +35,7 @@ class Dialog_UserAction : public QDialog
 
 public:
     // Constructor
-    explicit Dialog_UserAction(QWidget *parent = nullptr, QSoundEffect* soundPointer = nullptr);
+    explicit Dialog_UserAction(QWidget *parent = nullptr, std::vector<QSoundEffect>* soundPointer = nullptr);
 
     // Destructor
     ~Dialog_UserAction();
@@ -95,7 +95,7 @@ private:
     std::vector<QString> mOptionalListRuins;
     std::vector<QString> mOptionalListSpawningGrounds;
 
-    QSoundEffect* mpSoundEffects;
+    std::vector<QSoundEffect>* mpSoundEffects;
 
     std::vector<Player> mPlayerListCopy; // List of player objects (resized later)
     std::vector<City> mCityListCopy;     // List of City objects (resized later)
